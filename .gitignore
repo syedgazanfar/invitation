@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+apps/backend-python/.env
+apps/backend/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+
+# Prisma
+apps/backend/prisma/migrations/*
+!apps/backend/prisma/migrations/.gitkeep
+
+# Misc
+.turbo
+.vercel

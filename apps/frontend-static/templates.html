@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Templates - InviteMe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F5F2ED;
+            min-height: 100vh;
+        }
+        header {
+            background: white;
+            border-bottom: 1px solid #D9D9D9;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2E2E2E;
+            text-decoration: none;
+        }
+        .nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .nav a {
+            color: #2E2E2E;
+            text-decoration: none;
+        }
+        .nav a:hover { color: #A61E2A; }
+        .nav-btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .nav-btn.login {
+            color: #A61E2A;
+            border: 1px solid #A61E2A;
+        }
+        .nav-btn.register {
+            background: #A61E2A;
+            color: #F5F2ED;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        h1 {
+            color: #2E2E2E;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        /* Plan Warning */
+        .plan-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        .plan-warning a {
+            color: #A61E2A;
+            font-weight: 500;
+        }
+        
+        .categories {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        .category-btn {
+            padding: 8px 16px;
+            border: 1px solid #D9D9D9;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .category-btn:hover, .category-btn.active {
+            background: #A61E2A;
+            color: #F5F2ED;
+            border-color: #A61E2A;
+        }
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        .template-card {
+            background: white;
+            border: 1px solid #D9D9D9;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .template-card.locked {
+            opacity: 0.6;
+        }
+        .template-card.locked::after {
+            content: "🔒 UPGRADE REQUIRED";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .template-preview {
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+        }
+        .template-info {
+            padding: 20px;
+        }
+        .template-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2E2E2E;
+            margin-bottom: 5px;
+        }
+        .template-category {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: capitalize;
+        }
+        .template-plan {
+            display: inline-block;
+            background: #A61E2A;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 5px;
+        }
+        .template-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: #A61E2A;
+            color: #F5F2ED;
+        }
+        .btn-primary:hover { background: #8a1823; }
+        .btn-secondary {
+            background: transparent;
+            color: #A61E2A;
+            border: 1px solid #A61E2A;
+        }
+        .btn-secondary:hover {
+            background: rgba(166, 30, 42, 0.05);
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .loading, .empty, .error {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+        .error {
+            color: #c33;
+        }
+        .error button {
+            margin-top: 15px;
+        }
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .alert.error {
+            background: #fee;
+            color: #c33;
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #A61E2A;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">🎉 InviteMe</a>
+        <nav class="nav" id="mainNav">
+            <a href="index.html">Home</a>
+            <a href="templates.html">Templates</a>
+            <a href="plans.html">Pricing</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="login.html" class="nav-btn login" id="loginBtn">Login</a>
+            <a href="register.html" class="nav-btn register" id="registerBtn">Register</a>
+            <a href="#" class="nav-btn login" id="logoutBtn" style="display:none;" onclick="logout(); return false;">Logout</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Choose a Template</h1>
+        <p class="subtitle">Browse our collection of beautiful invitation templates</p>
+
+        <div id="planWarning"></div>
+        <div id="alert"></div>
+
+        <div class="categories" id="categories">
+            <button class="category-btn active" onclick="filterCategory('all', this)">All</button>
+        </div>
+
+        <div class="templates-grid" id="templatesGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading templates...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api/v1';
+        let token = localStorage.getItem('accessToken');
+        let allTemplates = [];
+        let userPlan = null;
+        let planHierarchy = {'BASIC': 1, 'PREMIUM': 2, 'LUXURY': 3};
+
+        // Update nav based on auth
+        if (token) {
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('registerBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+        }
+
+        function logout() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.reload();
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = message;
+        }
+
+        // Fetch with error handling
+        async function apiFetch(url, options = {}, requireAuth = false) {
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            if (token) {
+                defaultOptions.headers['Authorization'] = `Bearer ${token}`;
+            } else if (requireAuth) {
+                window.location.href = 'login.html?redirect=templates';
+                return null;
+            }
+            
+            try {
+                const response = await fetch(url, { ...defaultOptions, ...options });
+                
+                if (response.status === 401) {
+                    localStorage.removeItem('accessToken');
+                    window.location.href = 'login.html?redirect=templates';
+                    return null;
+                }
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        async function loadUserPlan() {
+            if (!token) return;
+            
+            try {
+                const data = await apiFetch(`${API_URL}/auth/my-plan/`);
+                if (data && data.success) {
+                    userPlan = data.data;
+                    
+                    // Show plan warning if no plan
+                    if (!userPlan.current_plan) {
+                        document.getElementById('planWarning').innerHTML = `
+                            <div class="plan-warning">
+                                ⚠️ You don't have an active plan. 
+                                <a href="plans.html">Choose a plan</a> to create invitations.
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load user plan:', error);
+            }
+        }
+
+        async function loadCategories() {
+            try {
+                const data = await apiFetch(`${API_URL}/plans/categories/list`);
+                
+                if (data && data.results) {
+                    const container = document.getElementById('categories');
+                    data.results.forEach(cat => {
+                        const btn = document.createElement('button');
+                        btn.className = 'category-btn';
+                        btn.textContent = cat.name;
+                        btn.onclick = function() { filterCategory(cat.code, this); };
+                        container.appendChild(btn);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+            }
+        }
+
+        async function loadTemplates() {
+            const grid = document.getElementById('templatesGrid');
+            
+            try {
+                const data = await apiFetch(`${API_URL}/plans/templates/all`);
+                
+                if (!data || !data.results) {
+                    throw new Error('Invalid response from server');
+                }
+                
+                allTemplates = data.results;
+                
+                if (allTemplates.length === 0) {
+                    grid.innerHTML = '<div class="empty">No templates found. Please check back later!</div>';
+                    return;
+                }
+                
+                displayTemplates(allTemplates);
+            } catch (error) {
+                grid.innerHTML = `
+                    <div class="error">
+                        <p>❌ Failed to load templates</p>
+                        <p style="font-size: 0.9rem; margin: 10px 0;">${error.message}</p>
+                        <button class="btn btn-primary" onclick="loadTemplates()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        function canAccessTemplate(templatePlanCode) {
+            if (!userPlan || !userPlan.current_plan) return false;
+            const userTier = planHierarchy[userPlan.current_plan.code] || 1;
+            const templateTier = planHierarchy[templatePlanCode] || 1;
+            return templateTier <= userTier;
+        }
+
+        function displayTemplates(templates) {
+            const grid = document.getElementById('templatesGrid');
+            
+            const categoryIcons = {
+                'Wedding': '💒', 'Birthday': '🎂', 'Party': '🎉', 'Eid': '🌙',
+                'Diwali': '🪔', 'Anniversary': '💕', 'Baby Shower': '👶',
+                'House Warming': '🏠', 'Engagement': '💍', 'Corporate': '💼'
+            };
+
+            grid.innerHTML = templates.map(t => {
+                const icon = categoryIcons[t.category_name] || '🎉';
+                const isLocked = !canAccessTemplate(t.plan_code);
+                const canUse = userPlan?.current_plan && !isLocked;
+                
+                return `
+                <div class="template-card ${isLocked ? 'locked' : ''}" data-category="${t.category_name}">
+                    <div class="template-preview" style="background: ${t.is_premium ? '#fff3cd' : '#F5F2ED'};">
+                        <div style="font-size: 3rem;">${icon}</div>
+                    </div>
+                    <div class="template-info">
+                        <div class="template-name">${t.name}</div>
+                        <div class="template-category">${t.category_name}</div>
+                        <span class="template-plan">${t.plan_code}</span>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">${t.description}</div>
+                        <div class="template-actions">
+                            ${isLocked ? 
+                                `<a href="plans.html" class="btn btn-primary">Upgrade</a>` :
+                                canUse ?
+                                `<a href="create-invitation.html?template=${t.id}" class="btn btn-primary">Use Template</a>` :
+                                `<a href="login.html?redirect=templates" class="btn btn-primary">Login to Use</a>`
+                            }
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function filterCategory(category, clickedBtn) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            if (clickedBtn) clickedBtn.classList.add('active');
+            
+            if (category === 'all') {
+                displayTemplates(allTemplates);
+            } else {
+                const filtered = allTemplates.filter(t => 
+                    (t.category_code && t.category_code.toLowerCase() === category.toLowerCase()) ||
+                    (t.category_name && t.category_name.toLowerCase() === category.toLowerCase())
+                );
+                displayTemplates(filtered);
+            }
+        }
+
+        // Load data
+        async function init() {
+            await loadUserPlan();
+            await loadCategories();
+            await loadTemplates();
+        }
+
+        init();
+    </script>
+</body>
+</html>

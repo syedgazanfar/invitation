@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - InviteMe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F5F2ED;
+            min-height: 100vh;
+        }
+        header {
+            background: #2E2E2E;
+            color: #F5F2ED;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .nav a {
+            color: #F5F2ED;
+            text-decoration: none;
+        }
+        .nav a:hover {
+            color: #A61E2A;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logout-btn {
+            background: #A61E2A;
+            color: #F5F2ED;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .welcome {
+            margin-bottom: 30px;
+        }
+        .welcome h1 {
+            color: #2E2E2E;
+            margin-bottom: 10px;
+        }
+        .welcome p {
+            color: #666;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: white;
+            border: 1px solid #D9D9D9;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .card h3 {
+            color: #2E2E2E;
+            margin-bottom: 10px;
+        }
+        .card p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .card-btn {
+            background: #A61E2A;
+            color: #F5F2ED;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .card-btn:hover {
+            background: #8a1823;
+        }
+        .invitations-list {
+            background: white;
+            border: 1px solid #D9D9D9;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .invitations-list h2 {
+            color: #2E2E2E;
+            margin-bottom: 20px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state h3 {
+            color: #2E2E2E;
+            margin-bottom: 10px;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .alert.error {
+            background: #fee;
+            color: #c33;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">🎉 InviteMe</div>
+        <div class="nav">
+            <a href="index.html">Home</a>
+            <a href="#invitations">My Invitations</a>
+            <a href="#templates">Templates</a>
+            <div class="user-info">
+                <span id="username">Loading...</span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="welcome">
+            <h1>Welcome back! 👋</h1>
+            <p>Manage your invitations and create new ones.</p>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>📧 Create Invitation</h3>
+                <p>Design a beautiful invitation for your special event.</p>
+                <a href="plans.html" class="card-btn">Choose a Plan</a>
+            </div>
+            <div class="card">
+                <h3>🎨 Browse Templates</h3>
+                <p>Explore our collection of beautiful invitation templates.</p>
+                <a href="templates.html" class="card-btn">View Templates</a>
+            </div>
+            <div class="card">
+                <h3>📊 My Orders</h3>
+                <p>View and manage your orders and payments.</p>
+                <a href="#orders" class="card-btn">View Orders</a>
+            </div>
+        </div>
+
+        <div class="invitations-list" id="invitations">
+            <h2>My Invitations</h2>
+            <div id="invitationsContent">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api/v1';
+
+        // Check if logged in
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Load user data
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.username) {
+            document.getElementById('username').textContent = user.full_name || user.username;
+        }
+
+        async function loadInvitations() {
+            try {
+                const response = await fetch(`${API_URL}/orders/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.data.results.length > 0) {
+                    // Show orders/invitations
+                    const orders = data.data.results;
+                    let html = '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse;">';
+                    html += '<thead><tr style="border-bottom: 2px solid #D9D9D9;">';
+                    html += '<th style="padding: 12px; text-align: left;">Order ID</th>';
+                    html += '<th style="padding: 12px; text-align: left;">Plan</th>';
+                    html += '<th style="padding: 12px; text-align: left;">Status</th>';
+                    html += '<th style="padding: 12px; text-align: left;">Date</th>';
+                    html += '</tr></thead><tbody>';
+                    
+                    orders.forEach(order => {
+                        html += `<tr style="border-bottom: 1px solid #eee;">`;
+                        html += `<td style="padding: 12px;">#${order.id}</td>`;
+                        html += `<td style="padding: 12px;">${order.plan_name}</td>`;
+                        html += `<td style="padding: 12px;"><span style="padding: 4px 12px; border-radius: 4px; background: ${order.status === 'completed' ? '#efe' : '#fff3cd'}; color: ${order.status === 'completed' ? '#2d6a4f' : '#856404'}; font-size: 0.85rem;">${order.status}</span></td>`;
+                        html += `<td style="padding: 12px;">${new Date(order.created_at).toLocaleDateString()}</td>`;
+                        html += `</tr>`;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                    document.getElementById('invitationsContent').innerHTML = html;
+                } else {
+                    document.getElementById('invitationsContent').innerHTML = `
+                        <div class="empty-state">
+                            <h3>No invitations yet</h3>
+                            <p>Create your first invitation to get started!</p>
+                            <br>
+                            <a href="plans.html" class="card-btn">Choose a Plan</a>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('invitationsContent').innerHTML = `
+                    <div class="alert error">Failed to load invitations. Please try again.</div>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        // Load invitations on page load
+        loadInvitations();
+    </script>
+</body>
+</html>

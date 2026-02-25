@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InviteMe - Digital Invitation Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F5F2ED;
+            min-height: 100vh;
+            color: #2E2E2E;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: white;
+            border-bottom: 1px solid #D9D9D9;
+        }
+        .navbar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2E2E2E;
+        }
+        .navbar-nav {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .nav-btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .nav-btn.login {
+            color: #A61E2A;
+            border: 1px solid #A61E2A;
+        }
+        .nav-btn.login:hover {
+            background: rgba(166, 30, 42, 0.05);
+        }
+        .nav-btn.register {
+            background: #A61E2A;
+            color: #F5F2ED;
+        }
+        .nav-btn.register:hover {
+            background: #8a1823;
+        }
+        .nav-btn.user {
+            color: #2E2E2E;
+        }
+        .user-menu {
+            display: none;
+        }
+        .user-menu.active {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: #2E2E2E;
+        }
+        .tagline {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: #A61E2A;
+            color: #F5F2ED;
+            padding: 15px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+            box-shadow: 0 4px 15px rgba(166, 30, 42, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(166, 30, 42, 0.4);
+            background: #8a1823;
+        }
+        .cta-button.outline {
+            background: transparent;
+            color: #A61E2A;
+            border: 2px solid #A61E2A;
+        }
+        .cta-button.outline:hover {
+            background: #A61E2A;
+            color: #F5F2ED;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+        }
+        .feature-card {
+            background: white;
+            border: 1px solid #D9D9D9;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        .feature-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #2E2E2E;
+        }
+        .feature-card p {
+            color: #666;
+        }
+        .plans {
+            margin-top: 80px;
+            text-align: center;
+        }
+        .plans h2 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #2E2E2E;
+        }
+        .plan-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .plan-card {
+            background: white;
+            border: 1px solid #D9D9D9;
+            padding: 40px 30px;
+            border-radius: 12px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        .plan-card.popular {
+            border: 2px solid #A61E2A;
+            transform: scale(1.02);
+        }
+        .plan-card.popular::before {
+            content: "Most Popular";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #A61E2A;
+            color: #F5F2ED;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2E2E2E;
+            margin-bottom: 10px;
+        }
+        .plan-price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #A61E2A;
+            margin: 20px 0;
+        }
+        .plan-price span {
+            font-size: 1rem;
+            color: #666;
+        }
+        .plan-features {
+            list-style: none;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .plan-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #D9D9D9;
+            color: #2E2E2E;
+        }
+        .plan-features li:before {
+            content: "✓ ";
+            color: #A61E2A;
+            font-weight: bold;
+        }
+        .plan-description {
+            color: #666;
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+        footer {
+            text-align: center;
+            padding: 60px 20px;
+            margin-top: 80px;
+            border-top: 1px solid #D9D9D9;
+            color: #2E2E2E;
+        }
+        .status {
+            display: inline-block;
+            background: rgba(166, 30, 42, 0.1);
+            color: #A61E2A;
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            border: 1px solid #A61E2A;
+        }
+        .api-status {
+            margin-top: 40px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #D9D9D9;
+            border-radius: 12px;
+        }
+        .api-status a {
+            color: #A61E2A;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #F5F2ED;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            border: 1px solid #D9D9D9;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #2E2E2E;
+        }
+        .modal-title {
+            font-size: 1.8rem;
+            color: #2E2E2E;
+            margin-bottom: 10px;
+        }
+        .modal-price {
+            font-size: 2.5rem;
+            color: #A61E2A;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .plan-card.popular {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-logo">🎉 InviteMe</div>
+        <div class="navbar-nav">
+            <div id="authButtons">
+                <a href="login.html" class="nav-btn login">Login</a>
+                <a href="register.html" class="nav-btn register">Register</a>
+            </div>
+            <div id="userMenu" class="user-menu">
+                <span id="userName"></span>
+                <a href="dashboard.html" class="nav-btn login">Dashboard</a>
+                <a href="#" class="nav-btn register" onclick="logout(); return false;">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <header>
+            <h1>Create Beautiful Digital Invitations</h1>
+            <p class="tagline">For Your Special Moments</p>
+            <a href="#plans" class="cta-button" id="getStartedBtn">Get Started</a>
+            <div class="status">✓ API Server is Running</div>
+        </header>
+
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <h3 class="feature-title">Beautiful Animations</h3>
+                <p>Stunning animated templates that bring your invitations to life</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔗</div>
+                <h3 class="feature-title">Easy Sharing</h3>
+                <p>Share your invitation with a unique link via WhatsApp or social media</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3 class="feature-title">Mobile Friendly</h3>
+                <p>Works perfectly on all devices - phones, tablets, and desktops</p>
+            </div>
+        </section>
+
+        <section class="plans" id="plans">
+            <h2>Choose Your Plan</h2>
+            <div class="plan-cards">
+                <div class="plan-card">
+                    <div class="plan-name">Basic</div>
+                    <div class="plan-price">₹150<span>/one-time</span></div>
+                    <p class="plan-description">Perfect for small gatherings and personal events</p>
+                    <ul class="plan-features">
+                        <li>100 Invitation Links</li>
+                        <li>5 Test Links</li>
+                        <li>Basic Templates</li>
+                        <li>15 Days Validity</li>
+                        <li>Email Support</li>
+                    </ul>
+                    <button class="cta-button outline" onclick="showPlanDetails('basic')" style="padding: 12px 30px; font-size: 1rem;">View Details</button>
+                </div>
+                <div class="plan-card popular">
+                    <div class="plan-name">Premium</div>
+                    <div class="plan-price">₹350<span>/one-time</span></div>
+                    <p class="plan-description">Ideal for weddings and medium-sized events</p>
+                    <ul class="plan-features">
+                        <li>150 Invitation Links</li>
+                        <li>5 Test Links</li>
+                        <li>Premium Templates</li>
+                        <li>15 Days Validity</li>
+                        <li>Priority Support</li>
+                        <li>Gallery Support</li>
+                    </ul>
+                    <button class="cta-button" onclick="showPlanDetails('premium')" style="padding: 12px 30px; font-size: 1rem;">View Details</button>
+                </div>
+                <div class="plan-card">
+                    <div class="plan-name">Luxury</div>
+                    <div class="plan-price">₹500<span>/one-time</span></div>
+                    <p class="plan-description">The ultimate experience for grand celebrations</p>
+                    <ul class="plan-features">
+                        <li>200 Invitation Links</li>
+                        <li>5 Test Links</li>
+                        <li>All Templates</li>
+                        <li>15 Days Validity</li>
+                        <li>VIP Support</li>
+                        <li>Music Support</li>
+                    </ul>
+                    <button class="cta-button outline" onclick="showPlanDetails('luxury')" style="padding: 12px 30px; font-size: 1rem;">View Details</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="api-status">
+            <h3>Quick Links</h3>
+            <p>Backend API: <a href="http://localhost:8000/api/v1/" target="_blank">http://localhost:8000/api/v1/</a></p>
+            <p>Admin Panel: <a href="http://localhost:8000/admin" target="_blank">http://localhost:8000/admin</a></p>
+        </div>
+
+        <footer>
+            <p>Made with ❤️ in India</p>
+            <p style="margin-top: 10px; opacity: 0.8;">Digital Invitation Platform - Production Ready</p>
+        </footer>
+    </div>
+
+    <!-- Plan Details Modal -->
+    <div id="planModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h3 class="modal-title" id="modalTitle">Plan Details</h3>
+            <div class="modal-price" id="modalPrice">₹0</div>
+            <div id="modalContent">
+                <p>Loading...</p>
+            </div>
+            <div style="margin-top: 30px; text-align: center;">
+                <a href="register.html" class="cta-button">Register to Purchase</a>
+                <p style="margin-top: 15px; color: #666;">Already have an account? <a href="login.html" style="color: #A61E2A;">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check API status
+        fetch('http://localhost:8000/api/v1/plans/')
+            .then(response => {
+                if (response.ok) {
+                    console.log('✓ API is running');
+                }
+            })
+            .catch(error => {
+                console.log('✗ API not accessible:', error);
+                document.querySelector('.status').textContent = '⚠ API Server not running';
+                document.querySelector('.status').style.background = 'rgba(255,165,0,0.1)';
+                document.querySelector('.status').style.color = '#FF8C00';
+                document.querySelector('.status').style.borderColor = '#FF8C00';
+            });
+
+        // Modal functions
+        const planData = {
+            basic: {
+                name: 'Basic Plan',
+                price: '₹150',
+                description: 'Perfect for small gatherings and personal events',
+                features: [
+                    '100 Regular Invitation Links',
+                    '5 Test Links for demo',
+                    'Access to Basic Templates',
+                    '15 Days Link Validity',
+                    'Email Support',
+                    'WhatsApp Sharing',
+                    'Guest Tracking',
+                    'CSV Export'
+                ]
+            },
+            premium: {
+                name: 'Premium Plan',
+                price: '₹350',
+                description: 'Ideal for weddings and medium-sized events',
+                features: [
+                    '150 Regular Invitation Links',
+                    '5 Test Links for demo',
+                    'Access to Basic + Premium Templates',
+                    '15 Days Link Validity',
+                    'Priority Support',
+                    'Gallery Image Support',
+                    'WhatsApp Sharing',
+                    'Guest Tracking with Device Info',
+                    'CSV Export',
+                    'RSVP Management'
+                ]
+            },
+            luxury: {
+                name: 'Luxury Plan',
+                price: '₹500',
+                description: 'The ultimate experience for grand celebrations',
+                features: [
+                    '200 Regular Invitation Links',
+                    '5 Test Links for demo',
+                    'Access to ALL Templates (Basic + Premium + Luxury)',
+                    '15 Days Link Validity',
+                    'VIP Support (Phone + Email)',
+                    'Gallery Image Support',
+                    'Background Music Support',
+                    'WhatsApp Sharing',
+                    'Advanced Guest Tracking',
+                    'CSV Export',
+                    'RSVP Management',
+                    'Custom Animation Requests'
+                ]
+            }
+        };
+
+        function showPlanDetails(plan) {
+            const data = planData[plan];
+            document.getElementById('modalTitle').textContent = data.name;
+            document.getElementById('modalPrice').textContent = data.price;
+            document.getElementById('modalContent').innerHTML = `
+                <p style="color: #666; margin-bottom: 20px;">${data.description}</p>
+                <h4 style="color: #2E2E2E; margin-bottom: 15px;">Features:</h4>
+                <ul style="list-style: none; text-align: left;">
+                    ${data.features.map(f => `<li style="padding: 8px 0; border-bottom: 1px solid #D9D9D9;">✓ ${f}</li>`).join('')}
+                </ul>
+            `;
+            document.getElementById('planModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('planModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('planModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Check auth status
+        function checkAuth() {
+            const token = localStorage.getItem('accessToken');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (token && user.username) {
+                document.getElementById('authButtons').style.display = 'none';
+                document.getElementById('userMenu').classList.add('active');
+                document.getElementById('userName').textContent = `Hi, ${user.full_name || user.username}!`;
+                
+                // Update Get Started button for logged in users
+                const getStartedBtn = document.getElementById('getStartedBtn');
+                getStartedBtn.textContent = 'Go to Dashboard';
+                getStartedBtn.href = 'dashboard.html';
+                
+                // Update modal button for logged in users
+                const modalBtn = document.querySelector('#planModal .cta-button');
+                modalBtn.textContent = 'Proceed to Templates';
+                modalBtn.href = 'templates.html';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.reload();
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

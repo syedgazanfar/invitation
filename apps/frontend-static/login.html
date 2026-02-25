@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - InviteMe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F5F2ED;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+        .card {
+            background: white;
+            border: 1px solid #D9D9D9;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo h1 {
+            color: #2E2E2E;
+            font-size: 2rem;
+        }
+        .logo p {
+            color: #666;
+            margin-top: 5px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2E2E2E;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #D9D9D9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #A61E2A;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #A61E2A;
+            color: #F5F2ED;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #8a1823;
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .links {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .links a {
+            color: #A61E2A;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #D9D9D9;
+        }
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            position: relative;
+            color: #666;
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+            display: block;
+        }
+        .alert.success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+            display: block;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-link a {
+            color: #666;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">
+                <h1>🎉 InviteMe</h1>
+                <p>Welcome back!</p>
+            </div>
+
+            <div id="alert" class="alert"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">Login</button>
+            </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <div class="links">
+                <p>Don't have an account? <a href="register.html">Register here</a></p>
+            </div>
+
+            <div class="back-link">
+                <a href="index.html">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api/v1';
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const alert = document.getElementById('alert');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+            alert.className = 'alert';
+            alert.textContent = '';
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Save tokens
+                    localStorage.setItem('accessToken', data.data.access);
+                    localStorage.setItem('refreshToken', data.data.refresh);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    
+                    alert.className = 'alert success';
+                    alert.textContent = 'Login successful! Redirecting...';
+                    
+                    // Redirect to dashboard or home
+                    // Check for redirect parameter
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect') || 'dashboard.html';
+                    
+                    setTimeout(() => {
+                        window.location.href = redirect;
+                    }, 1500);
+                } else {
+                    alert.className = 'alert error';
+                    alert.textContent = data.message || data.detail || 'Invalid credentials';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Login';
+                }
+            } catch (error) {
+                alert.className = 'alert error';
+                alert.textContent = 'Network error. Please try again.';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login';
+            }
+        });
+
+
+
+        // Check if already logged in
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect') || 'dashboard.html';
+            window.location.href = redirect;
+        }
+    </script>
+</body>
+</html>

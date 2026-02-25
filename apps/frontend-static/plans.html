@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Plan - InviteMe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F5F2ED;
+            min-height: 100vh;
+        }
+        header {
+            background: white;
+            border-bottom: 1px solid #D9D9D9;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2E2E2E;
+            text-decoration: none;
+        }
+        .nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .nav a {
+            color: #2E2E2E;
+            text-decoration: none;
+        }
+        .nav a:hover { color: #A61E2A; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2E2E2E;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        /* Current Plan Card */
+        .current-plan-card {
+            background: linear-gradient(135deg, #A61E2A 0%, #8a1823 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(166, 30, 42, 0.3);
+        }
+        .current-plan-card h2 {
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        .current-plan-card .plan-name {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .current-plan-card .plan-status {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        .current-plan-card .plan-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn-support {
+            background: white;
+            color: #A61E2A;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-support:hover {
+            background: #f5f5f5;
+        }
+        
+        /* Plan Change Request Form */
+        .plan-change-form {
+            background: white;
+            border: 1px solid #D9D9D9;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        .plan-change-form.active {
+            display: block;
+        }
+        .plan-change-form h3 {
+            color: #2E2E2E;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2E2E2E;
+            font-weight: 500;
+        }
+        .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #D9D9D9;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        /* Plan Cards */
+        .plan-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .plan-card {
+            background: white;
+            border: 1px solid #D9D9D9;
+            padding: 40px 30px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        .plan-card.locked {
+            opacity: 0.6;
+            pointer-events: none;
+            background: #f5f5f5;
+        }
+        .plan-card.current {
+            border: 2px solid #A61E2A;
+        }
+        .plan-card.current::after {
+            content: "YOUR PLAN";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #A61E2A;
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2E2E2E;
+            margin-bottom: 10px;
+        }
+        .plan-price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #A61E2A;
+            margin: 20px 0;
+        }
+        .plan-price span {
+            font-size: 1rem;
+            color: #666;
+        }
+        .plan-features {
+            list-style: none;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .plan-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            color: #2E2E2E;
+        }
+        .plan-features li:before {
+            content: "✓ ";
+            color: #A61E2A;
+            font-weight: bold;
+        }
+        .btn {
+            display: inline-block;
+            background: #A61E2A;
+            color: #F5F2ED;
+            padding: 14px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+        }
+        .btn:hover { background: #8a1823; }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-outline {
+            background: transparent;
+            color: #A61E2A;
+            border: 2px solid #A61E2A;
+        }
+        .btn-outline:hover {
+            background: #A61E2A;
+            color: #F5F2ED;
+        }
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .alert.error {
+            background: #fee;
+            color: #c33;
+        }
+        .alert.success {
+            background: #efe;
+            color: #2d6a4f;
+        }
+        .alert.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #A61E2A;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .api-error {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .api-error button {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">🎉 InviteMe</a>
+        <nav class="nav" id="mainNav">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="templates.html">Templates</a>
+            <a href="login.html" id="loginLink">Login</a>
+            <a href="#" onclick="logout(); return false;" id="logoutLink" style="display:none;">Logout</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Choose Your Plan</h1>
+        <p class="subtitle" id="pageSubtitle">Select the perfect plan for your event</p>
+
+        <div id="alert"></div>
+
+        <!-- Current Plan Section -->
+        <div id="currentPlanSection" style="display:none;"></div>
+
+        <!-- Plan Change Request Form -->
+        <div class="plan-change-form" id="planChangeForm">
+            <h3>📧 Request Plan Change</h3>
+            <p style="color: #666; margin-bottom: 15px;">Submit a request to change your plan. An admin will review and contact you.</p>
+            <div class="form-group">
+                <label>Select New Plan</label>
+                <select id="requestedPlan">
+                    <option value="">Choose a plan...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Reason for Change (Optional)</label>
+                <textarea id="changeReason" rows="3" placeholder="Tell us why you want to change your plan..."></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="submitPlanChangeRequest()">Submit Request</button>
+                <button class="btn btn-outline" onclick="togglePlanChangeForm()">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Plan Cards -->
+        <div class="plan-cards" id="plansContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading plans...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api/v1';
+        let token = localStorage.getItem('accessToken');
+        let userPlan = null;
+        let allPlans = [];
+        
+        // Check auth
+        if (!token) {
+            window.location.href = 'login.html?redirect=plans';
+        } else {
+            document.getElementById('loginLink').style.display = 'none';
+            document.getElementById('logoutLink').style.display = 'inline';
+        }
+
+        function logout() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = message;
+        }
+
+        // Fetch with error handling
+        async function apiFetch(url, options = {}) {
+            const defaultOptions = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            try {
+                const response = await fetch(url, { ...defaultOptions, ...options });
+                
+                if (response.status === 401) {
+                    // Token expired
+                    localStorage.removeItem('accessToken');
+                    window.location.href = 'login.html?redirect=plans';
+                    return null;
+                }
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        async function loadMyPlan() {
+            try {
+                const data = await apiFetch(`${API_URL}/auth/my-plan/`);
+                if (data && data.success) {
+                    userPlan = data.data;
+                    renderCurrentPlan();
+                }
+            } catch (error) {
+                console.error('Failed to load plan:', error);
+            }
+        }
+
+        function renderCurrentPlan() {
+            const section = document.getElementById('currentPlanSection');
+            
+            if (!userPlan.current_plan) {
+                section.style.display = 'none';
+                document.getElementById('pageSubtitle').textContent = 'Select your first plan to get started';
+                return;
+            }
+            
+            section.style.display = 'block';
+            document.getElementById('pageSubtitle').textContent = 'You are subscribed to the following plan';
+            
+            const canRequest = userPlan.can_change_plan && !userPlan.plan_change_requested;
+            const requestStatus = userPlan.plan_change_requested ? 
+                '<span style="color: #ffc107;">⏳ Plan change request pending</span>' : '';
+            
+            section.innerHTML = `
+                <div class="current-plan-card">
+                    <h2>Your Current Plan</h2>
+                    <div class="plan-name">${userPlan.current_plan.name}</div>
+                    <div class="plan-status">
+                        ₹${userPlan.current_plan.price} • ${userPlan.current_plan.link_limit} links • ${userPlan.current_plan.test_links} test links
+                        ${requestStatus}
+                    </div>
+                    <div class="plan-actions">
+                        ${canRequest ? 
+                            '<button class="btn-support" onclick="togglePlanChangeForm()">Request Plan Change</button>' : 
+                            userPlan.plan_change_requested ? 
+                            '<button class="btn-support" disabled>Change Requested</button>' :
+                            '<button class="btn-support" disabled>Contact Admin to Change</button>'
+                        }
+                        <a href="templates.html" class="btn-support">Browse Templates</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadPlans() {
+            const container = document.getElementById('plansContainer');
+            
+            try {
+                const data = await apiFetch(`${API_URL}/plans/`, { method: 'GET' });
+                
+                if (!data || !Array.isArray(data)) {
+                    throw new Error('Invalid response from server');
+                }
+                
+                allPlans = data;
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="api-error">No plans available at the moment.</div>';
+                    return;
+                }
+                
+                renderPlans(data);
+                populatePlanChangeSelect(data);
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="api-error">
+                        <p>❌ Failed to load plans</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">${error.message}</p>
+                        <button class="btn" onclick="loadPlans()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderPlans(plans) {
+            const container = document.getElementById('plansContainer');
+            const currentPlanCode = userPlan?.current_plan?.code;
+            const hasPlan = !!currentPlanCode;
+            
+            container.innerHTML = plans.map((plan, index) => {
+                const isCurrent = plan.code === currentPlanCode;
+                const isLocked = hasPlan && !isCurrent;
+                const isPopular = plan.code === 'PREMIUM';
+                
+                return `
+                <div class="plan-card ${isCurrent ? 'current' : ''} ${isLocked ? 'locked' : ''}">
+                    ${isPopular && !hasPlan ? '<div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #A61E2A; color: white; padding: 5px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">Most Popular</div>' : ''}
+                    <div class="plan-name">${plan.name}</div>
+                    <div class="plan-price">₹${plan.price_inr}<span>/one-time</span></div>
+                    <ul class="plan-features">
+                        <li>${plan.regular_links} Invitation Links</li>
+                        <li>${plan.test_links} Test Links</li>
+                        ${plan.features.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                    ${isCurrent ? 
+                        '<button class="btn" disabled>Current Plan</button>' :
+                        isLocked ?
+                        '<button class="btn" disabled>Locked 🔒</button>' :
+                        `<button class="btn" onclick="selectPlan('${plan.code}')">Choose ${plan.name}</button>`
+                    }
+                </div>
+            `}).join('');
+        }
+
+        function populatePlanChangeSelect(plans) {
+            const select = document.getElementById('requestedPlan');
+            const currentCode = userPlan?.current_plan?.code;
+            
+            select.innerHTML = '<option value="">Choose a plan...</option>' +
+                plans
+                    .filter(p => p.code !== currentCode)
+                    .map(p => `<option value="${p.code}">${p.name} - ₹${p.price_inr}</option>`)
+                    .join('');
+        }
+
+        function togglePlanChangeForm() {
+            const form = document.getElementById('planChangeForm');
+            form.classList.toggle('active');
+        }
+
+        async function submitPlanChangeRequest() {
+            const planCode = document.getElementById('requestedPlan').value;
+            const reason = document.getElementById('changeReason').value;
+            
+            if (!planCode) {
+                showAlert('Please select a plan', 'warning');
+                return;
+            }
+            
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Submitting...';
+            
+            try {
+                const response = await apiFetch(`${API_URL}/auth/request-plan-change/`, {
+                    method: 'POST',
+                    body: JSON.stringify({ plan_code: planCode, reason: reason })
+                });
+                
+                if (response && response.success) {
+                    showAlert(response.message, 'success');
+                    togglePlanChangeForm();
+                    await loadMyPlan(); // Refresh plan status
+                } else {
+                    showAlert(response?.message || 'Request failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to submit request. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Submit Request';
+            }
+        }
+
+        async function selectPlan(planCode) {
+            // Check if user already has a plan
+            if (userPlan?.current_plan && userPlan.current_plan.code !== planCode) {
+                showAlert('You can only purchase your current plan. To change plans, use the Request Plan Change option.', 'warning');
+                return;
+            }
+            
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Processing...';
+            
+            try {
+                const response = await apiFetch(`${API_URL}/orders/create/`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        plan_code: planCode,
+                        payment_method: 'upi'
+                    })
+                });
+                
+                if (response && response.success) {
+                    showAlert('Order created! Redirecting to templates...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'templates.html';
+                    }, 1500);
+                } else {
+                    showAlert(response?.message || 'Failed to create order', 'error');
+                    btn.disabled = false;
+                    btn.textContent = `Choose ${planCode}`;
+                }
+            } catch (error) {
+                showAlert(error.message || 'Network error. Please try again.', 'error');
+                btn.disabled = false;
+                btn.textContent = `Choose ${planCode}`;
+            }
+        }
+
+        // Load data on page load
+        async function init() {
+            await loadMyPlan();
+            await loadPlans();
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - InviteMe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F5F2ED;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 450px;
+        }
+        .card {
+            background: white;
+            border: 1px solid #D9D9D9;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo h1 {
+            color: #2E2E2E;
+            font-size: 2rem;
+        }
+        .logo p {
+            color: #666;
+            margin-top: 5px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2E2E2E;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #D9D9D9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #A61E2A;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #A61E2A;
+            color: #F5F2ED;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #8a1823;
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .links {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .links a {
+            color: #A61E2A;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #D9D9D9;
+        }
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            position: relative;
+            color: #666;
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+            display: block;
+        }
+        .alert.success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+            display: block;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-link a {
+            color: #666;
+            text-decoration: none;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #D9D9D9;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .step.active {
+            background: #A61E2A;
+            color: white;
+        }
+        .step.completed {
+            background: #2E2E2E;
+            color: white;
+        }
+        .form-step {
+            display: none;
+        }
+        .form-step.active {
+            display: block;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-group .btn {
+            flex: 1;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: #A61E2A;
+            border: 2px solid #A61E2A;
+        }
+        .btn-secondary:hover {
+            background: rgba(166, 30, 42, 0.05);
+        }
+        
+        /* Real-time validation styles */
+        .input-wrapper {
+            position: relative;
+        }
+        input.valid {
+            border-color: #28a745;
+            background-color: #f8fff8;
+        }
+        input.invalid {
+            border-color: #dc3545;
+            background-color: #fff8f8;
+        }
+        input.checking {
+            border-color: #ffc107;
+            background-color: #fffbf0;
+        }
+        .validation-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+        }
+        .validation-message {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+        .validation-message.error {
+            color: #dc3545;
+        }
+        .validation-message.success {
+            color: #28a745;
+        }
+        .validation-message.info {
+            color: #666;
+        }
+        .password-strength {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+        .password-strength-bar.weak {
+            width: 33%;
+            background: #dc3545;
+        }
+        .password-strength-bar.medium {
+            width: 66%;
+            background: #ffc107;
+        }
+        .password-strength-bar.strong {
+            width: 100%;
+            background: #28a745;
+        }
+        .password-strength-text {
+            font-size: 0.8rem;
+            margin-top: 4px;
+            color: #666;
+        }
+        .username-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+            font-size: 0.85rem;
+        }
+        .username-status.available {
+            color: #28a745;
+        }
+        .username-status.taken {
+            color: #dc3545;
+        }
+        .username-status.checking {
+            color: #ffc107;
+        }
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #A61E2A;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">
+                <h1>🎉 InviteMe</h1>
+                <p>Create your account</p>
+            </div>
+
+            <div class="step-indicator">
+                <div class="step active" id="step1">1</div>
+                <div class="step" id="step2">2</div>
+                <div class="step" id="step3">3</div>
+            </div>
+
+            <div id="alert" class="alert"></div>
+
+            <form id="registerForm">
+                <!-- Step 1: Account Info -->
+                <div class="form-step active" id="formStep1">
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <div class="input-wrapper">
+                            <input type="tel" id="phone" name="phone" placeholder="9876543210" required>
+                        </div>
+                        <div class="validation-message info" id="phoneMessage">Enter 10 digit Indian mobile number</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password *</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="password" name="password" placeholder="Create a strong password" required>
+                        </div>
+                        <div class="password-strength">
+                            <div class="password-strength-bar" id="strengthBar"></div>
+                        </div>
+                        <div class="password-strength-text" id="strengthText"></div>
+                        <div class="validation-message info" id="passwordMessage">Min 8 chars, include uppercase, lowercase, number & special char</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passwordConfirm">Confirm Password *</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="passwordConfirm" name="passwordConfirm" placeholder="Confirm password" required>
+                        </div>
+                        <div class="validation-message" id="confirmMessage"></div>
+                    </div>
+
+                    <button type="button" class="btn" onclick="nextStep(1)">Next</button>
+                </div>
+
+                <!-- Step 2: Personal Info -->
+                <div class="form-step" id="formStep2">
+                    <div class="form-group">
+                        <label for="username">Username *</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="username" name="username" placeholder="Choose a username" required autocomplete="off">
+                        </div>
+                        <div class="username-status" id="usernameStatus"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" placeholder="Your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="your@email.com">
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="prevStep(2)">Back</button>
+                        <button type="button" class="btn" onclick="nextStep(2)">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Review & Submit -->
+                <div class="form-step" id="formStep3">
+                    <p style="margin-bottom: 20px; color: #666;">Review your information:</p>
+                    <div id="reviewInfo" style="background: #F5F2ED; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <!-- Filled by JS -->
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="prevStep(3)">Back</button>
+                        <button type="submit" class="btn" id="submitBtn">Create Account</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <div class="links">
+                <p>Already have an account? <a href="login.html">Login here</a></p>
+            </div>
+
+            <div class="back-link">
+                <a href="index.html">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api/v1';
+        let currentStep = 1;
+
+        function showStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+            // Show current step
+            document.getElementById(`formStep${step}`).classList.add('active');
+            
+            // Update step indicators
+            for (let i = 1; i <= 3; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                if (i < step) {
+                    stepEl.classList.add('completed');
+                    stepEl.classList.remove('active');
+                } else if (i === step) {
+                    stepEl.classList.add('active');
+                    stepEl.classList.remove('completed');
+                } else {
+                    stepEl.classList.remove('active', 'completed');
+                }
+            }
+            
+            currentStep = step;
+        }
+
+        function nextStep(current) {
+            // Validate current step
+            const stepEl = document.getElementById(`formStep${current}`);
+            const inputs = stepEl.querySelectorAll('input[required]');
+            
+            for (let input of inputs) {
+                if (!input.value) {
+                    showAlert('Please fill all required fields', 'error');
+                    return;
+                }
+            }
+
+            // Special validation for step 1
+            if (current === 1) {
+                const password = document.getElementById('password').value;
+                const confirm = document.getElementById('passwordConfirm').value;
+                
+                if (password.length < 8) {
+                    showAlert('Password must be at least 8 characters', 'error');
+                    return;
+                }
+                if (password !== confirm) {
+                    showAlert('Passwords do not match', 'error');
+                    return;
+                }
+            }
+
+            // If going to step 3, show review
+            if (current === 2) {
+                showReview();
+            }
+
+            showStep(current + 1);
+        }
+
+        function prevStep(current) {
+            showStep(current - 1);
+        }
+
+        function showReview() {
+            const phone = document.getElementById('phone').value;
+            const username = document.getElementById('username').value;
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+
+            document.getElementById('reviewInfo').innerHTML = `
+                <p><strong>Phone:</strong> ${phone}</p>
+                <p><strong>Username:</strong> ${username}</p>
+                ${fullName ? `<p><strong>Name:</strong> ${fullName}</p>` : ''}
+                ${email ? `<p><strong>Email:</strong> ${email}</p>` : ''}
+            `;
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Account...';
+
+            // Normalize phone number
+            let phone = document.getElementById('phone').value.replace(/\s/g, '').replace(/-/g, '');
+            if (!phone.startsWith('+91')) {
+                // If starts with 91, add +
+                if (phone.startsWith('91') && phone.length === 12) {
+                    phone = '+' + phone;
+                } else if (phone.length === 10) {
+                    // Add +91 prefix for 10 digit numbers
+                    phone = '+91' + phone;
+                }
+            }
+
+            const data = {
+                phone: phone,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                password_confirm: document.getElementById('passwordConfirm').value,
+                full_name: document.getElementById('fullName').value,
+                email: document.getElementById('email').value || undefined
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // Save tokens
+                    localStorage.setItem('accessToken', result.data.access);
+                    localStorage.setItem('refreshToken', result.data.refresh);
+                    localStorage.setItem('user', JSON.stringify(result.data.user));
+                    
+                    showAlert('Account created successfully! Redirecting...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    // Handle validation errors (400 response)
+                    // Log full response for debugging
+                    console.error('Registration error:', result);
+                    
+                    let errorMsg = result.message || result.detail || '';
+                    const errors = [];
+                    
+                    // DRF returns errors as {field: ["error message"], ...}
+                    // Check all possible field errors
+                    const fields = ['phone', 'username', 'password', 'password_confirm', 'email', 'full_name', 'non_field_errors'];
+                    
+                    fields.forEach(field => {
+                        if (result[field]) {
+                            const msgs = Array.isArray(result[field]) ? result[field] : [result[field]];
+                            errors.push(`<b>${field}:</b> ${msgs.join(', ')}`);
+                        }
+                    });
+                    
+                    // If no specific field errors found, check if result itself is the error object
+                    if (errors.length === 0 && typeof result === 'object') {
+                        Object.entries(result).forEach(([key, val]) => {
+                            if (key !== 'success' && key !== 'message' && key !== 'detail') {
+                                const msgs = Array.isArray(val) ? val : [val];
+                                errors.push(`<b>${key}:</b> ${msgs.join(', ')}`);
+                            }
+                        });
+                    }
+                    
+                    if (errors.length > 0) {
+                        errorMsg = errors.join('<br>');
+                    } else if (!errorMsg) {
+                        errorMsg = 'Registration failed. Please check your information.';
+                    }
+                    
+                    showAlert(errorMsg, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Account';
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            }
+        });
+
+        // ==========================================
+        // REAL-TIME VALIDATION
+        // ==========================================
+        
+        // Phone Validation
+        const phoneInput = document.getElementById('phone');
+        const phoneMessage = document.getElementById('phoneMessage');
+        
+        phoneInput.addEventListener('input', function() {
+            let val = this.value.replace(/\s/g, '').replace(/-/g, '');
+            let digitsOnly = val.replace(/\D/g, '');
+            
+            // Allow only numbers and + at start
+            if (this.value.startsWith('+')) {
+                this.value = '+' + digitsOnly;
+            } else {
+                this.value = digitsOnly;
+            }
+            
+            // Limit to 10 digits (or 12 with 91 prefix)
+            digitsOnly = this.value.replace(/\D/g, '');
+            if (digitsOnly.length > 10 && !digitsOnly.startsWith('91')) {
+                this.value = digitsOnly.substring(0, 10);
+            } else if (digitsOnly.length > 12) {
+                this.value = '+' + digitsOnly.substring(0, 12);
+            }
+            
+            validatePhone();
+        });
+        
+        function validatePhone() {
+            let val = phoneInput.value.replace(/\D/g, '');
+            
+            // Remove 91 prefix if present (handle formatted number)
+            if (val.length === 12 && val.startsWith('91')) {
+                val = val.substring(2);
+            }
+            
+            if (val.length === 0) {
+                phoneInput.className = '';
+                phoneMessage.innerHTML = 'Enter 10 digits starting with <b>6, 7, 8 or 9</b>';
+                phoneMessage.className = 'validation-message info';
+                return false;
+            }
+            
+            // Check first digit is valid (6,7,8,9) - check original value before stripping 91
+            const firstDigit = phoneInput.value.replace(/\D/g, '').charAt(0);
+            const checkVal = val.length >= 1 ? val : phoneInput.value.replace(/\D/g, '');
+            const checkFirst = val.length > 0 ? val.charAt(0) : firstDigit;
+            
+            // If number is longer than 10, it's invalid
+            if (val.length > 10) {
+                phoneInput.className = 'invalid';
+                phoneMessage.textContent = '❌ Too many digits';
+                phoneMessage.className = 'validation-message error';
+                return false;
+            }
+            
+            // Check first digit is 6,7,8,9 (use val which has 91 stripped if present)
+            if (val.length >= 1 && !/^[6-9]/.test(val)) {
+                phoneInput.className = 'invalid';
+                phoneMessage.innerHTML = '❌ Must start with <b>6, 7, 8 or 9</b>';
+                phoneMessage.className = 'validation-message error';
+                return false;
+            }
+            
+            if (val.length < 10) {
+                phoneInput.className = 'invalid';
+                phoneMessage.textContent = `❌ Enter ${10 - val.length} more digit(s)`;
+                phoneMessage.className = 'validation-message error';
+                return false;
+            }
+            
+            if (val.length === 10) {
+                // Check valid Indian mobile number starting with 6,7,8,9
+                if (!/^[6-9]/.test(val)) {
+                    phoneInput.className = 'invalid';
+                    phoneMessage.innerHTML = '❌ Invalid number. Must start with <b>6, 7, 8 or 9</b>';
+                    phoneMessage.className = 'validation-message error';
+                    return false;
+                }
+                phoneInput.className = 'valid';
+                phoneMessage.textContent = '✓ Valid Indian mobile number';
+                phoneMessage.className = 'validation-message success';
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Password Validation
+        const passwordInput = document.getElementById('password');
+        const passwordMessage = document.getElementById('passwordMessage');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+        
+        passwordInput.addEventListener('input', function() {
+            validatePassword();
+            validatePasswordMatch();
+        });
+        
+        function validatePassword() {
+            const password = passwordInput.value;
+            
+            if (password.length === 0) {
+                passwordInput.className = '';
+                strengthBar.className = '';
+                strengthText.textContent = '';
+                passwordMessage.textContent = 'Min 8 chars, include uppercase, lowercase, number & special char';
+                passwordMessage.className = 'validation-message info';
+                return false;
+            }
+            
+            // Check requirements
+            const hasLower = /[a-z]/.test(password);
+            const hasUpper = /[A-Z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            const isLongEnough = password.length >= 8;
+            
+            const strength = [hasLower, hasUpper, hasNumber, hasSpecial, isLongEnough].filter(Boolean).length;
+            
+            // Update strength bar
+            if (password.length < 6) {
+                strengthBar.className = 'password-strength-bar weak';
+                strengthText.textContent = 'Weak password';
+                passwordInput.className = 'invalid';
+            } else if (strength < 4) {
+                strengthBar.className = 'password-strength-bar medium';
+                strengthText.textContent = 'Medium strength - add more variety';
+                passwordInput.className = '';
+            } else {
+                strengthBar.className = 'password-strength-bar strong';
+                strengthText.textContent = 'Strong password ✓';
+                passwordInput.className = 'valid';
+            }
+            
+            // Show specific missing requirements
+            const missing = [];
+            if (!isLongEnough) missing.push('8+ chars');
+            if (!hasLower) missing.push('lowercase');
+            if (!hasUpper) missing.push('uppercase');
+            if (!hasNumber) missing.push('number');
+            if (!hasSpecial) missing.push('special char');
+            
+            if (missing.length > 0) {
+                passwordMessage.textContent = 'Add: ' + missing.join(', ');
+                passwordMessage.className = 'validation-message error';
+                return false;
+            }
+            
+            // Check for common passwords (Django validator)
+            const commonPasswords = ['password', '123456', 'qwerty', 'abc123', 'letmein', 'welcome', 'monkey', 'dragon', 'master', 'hello'];
+            const passLower = password.toLowerCase();
+            for (let common of commonPasswords) {
+                if (passLower.includes(common) || common.includes(passLower)) {
+                    passwordMessage.textContent = '❌ Too common. Avoid "password", "123456", etc.';
+                    passwordMessage.className = 'validation-message error';
+                    passwordInput.className = 'invalid';
+                    return false;
+                }
+            }
+            
+            // Check similarity to username (Django validator)
+            const username = document.getElementById('username').value.toLowerCase();
+            if (username && username.length >= 3) {
+                if (passLower.includes(username) || username.includes(passLower)) {
+                    passwordMessage.textContent = '❌ Too similar to username';
+                    passwordMessage.className = 'validation-message error';
+                    passwordInput.className = 'invalid';
+                    return false;
+                }
+            }
+            
+            // Check all numeric (Django validator)
+            if (/^\d+$/.test(password)) {
+                passwordMessage.textContent = '❌ Cannot be all numbers';
+                passwordMessage.className = 'validation-message error';
+                passwordInput.className = 'invalid';
+                return false;
+            }
+            
+            passwordMessage.innerHTML = '✓ Strong password';
+            passwordMessage.className = 'validation-message success';
+            passwordInput.className = 'valid';
+            return true;
+        }
+        
+        // Password Confirm Validation
+        const confirmInput = document.getElementById('passwordConfirm');
+        const confirmMessage = document.getElementById('confirmMessage');
+        
+        confirmInput.addEventListener('input', validatePasswordMatch);
+        
+        function validatePasswordMatch() {
+            const password = passwordInput.value;
+            const confirm = confirmInput.value;
+            
+            if (confirm.length === 0) {
+                confirmInput.className = '';
+                confirmMessage.textContent = '';
+                return false;
+            }
+            
+            if (password !== confirm) {
+                confirmInput.className = 'invalid';
+                confirmMessage.textContent = '❌ Passwords do not match';
+                confirmMessage.className = 'validation-message error';
+                return false;
+            } else {
+                confirmInput.className = 'valid';
+                confirmMessage.textContent = '✓ Passwords match';
+                confirmMessage.className = 'validation-message success';
+                return true;
+            }
+        }
+        
+        // Username Validation with API Check
+        const usernameInput = document.getElementById('username');
+        const usernameStatus = document.getElementById('usernameStatus');
+        let usernameCheckTimeout = null;
+        
+        usernameInput.addEventListener('input', function() {
+            const username = this.value.trim();
+            
+            // Re-validate password (for similarity check)
+            if (passwordInput.value) {
+                validatePassword();
+            }
+            
+            // Clear previous timeout
+            if (usernameCheckTimeout) {
+                clearTimeout(usernameCheckTimeout);
+            }
+            
+            if (username.length === 0) {
+                usernameInput.className = '';
+                usernameStatus.innerHTML = '';
+                return;
+            }
+            
+            // Basic validation
+            if (username.length < 3) {
+                usernameInput.className = 'invalid';
+                usernameStatus.innerHTML = '<span class="taken">❌ Too short (min 3 chars)</span>';
+                return;
+            }
+            
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                usernameInput.className = 'invalid';
+                usernameStatus.innerHTML = '<span class="taken">❌ Only letters, numbers & underscore allowed</span>';
+                return;
+            }
+            
+            // Show checking status
+            usernameInput.className = 'checking';
+            usernameStatus.innerHTML = '<div class="spinner"></div> Checking availability...';
+            usernameStatus.className = 'username-status checking';
+            
+            // Debounce API call
+            usernameCheckTimeout = setTimeout(() => checkUsernameAvailability(username), 500);
+        });
+        
+        async function checkUsernameAvailability(username) {
+            try {
+                // Try to fetch user profile (will fail if not exists, or we can check via a special endpoint)
+                // Since we don't have a check-username endpoint, we'll simulate by trying registration with dry-run
+                // For now, just show format validation
+                
+                // Simulate API delay
+                await new Promise(r => setTimeout(r, 300));
+                
+                // Mock check - in production, call your API
+                const takenUsernames = ['admin', 'user', 'test', 'demo', 'root'];
+                
+                if (takenUsernames.includes(username.toLowerCase())) {
+                    usernameInput.className = 'invalid';
+                    usernameStatus.innerHTML = '<span class="taken">❌ Username already taken</span>';
+                    usernameStatus.className = 'username-status taken';
+                } else {
+                    usernameInput.className = 'valid';
+                    usernameStatus.innerHTML = '<span class="available">✓ Username available</span>';
+                    usernameStatus.className = 'username-status available';
+                }
+            } catch (error) {
+                usernameStatus.innerHTML = '';
+            }
+        }
+        
+        // Normalize phone on blur
+        phoneInput.addEventListener('blur', function() {
+            let digitsOnly = this.value.replace(/\D/g, '');
+            
+            // If 10 digits, add +91 prefix
+            if (digitsOnly.length === 10) {
+                this.value = '+91' + digitsOnly;
+            }
+            // If already has 91 prefix (12 digits), add +
+            else if (digitsOnly.length === 12 && digitsOnly.startsWith('91')) {
+                this.value = '+' + digitsOnly;
+            }
+            
+            validatePhone();
+        });
+        
+        // Enhanced nextStep validation
+        const originalNextStep = nextStep;
+        nextStep = function(current) {
+            if (current === 1) {
+                const isPhoneValid = validatePhone();
+                const isPasswordValid = validatePassword();
+                const isMatchValid = validatePasswordMatch();
+                
+                if (!isPhoneValid) {
+                    showAlert('Please enter a valid phone number', 'error');
+                    phoneInput.focus();
+                    return;
+                }
+                if (!isPasswordValid) {
+                    showAlert('Please create a stronger password', 'error');
+                    passwordInput.focus();
+                    return;
+                }
+                if (!isMatchValid) {
+                    showAlert('Passwords do not match', 'error');
+                    confirmInput.focus();
+                    return;
+                }
+            }
+            
+            if (current === 2) {
+                const username = usernameInput.value.trim();
+                if (username.length < 3) {
+                    showAlert('Username must be at least 3 characters', 'error');
+                    usernameInput.focus();
+                    return;
+                }
+                if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                    showAlert('Username can only contain letters, numbers and underscore', 'error');
+                    usernameInput.focus();
+                    return;
+                }
+                if (usernameStatus.classList.contains('taken')) {
+                    showAlert('Please choose a different username', 'error');
+                    usernameInput.focus();
+                    return;
+                }
+            }
+            
+            // Call original nextStep
+            const stepEl = document.getElementById(`formStep${current}`);
+            const inputs = stepEl.querySelectorAll('input[required]');
+            
+            for (let input of inputs) {
+                if (!input.value) {
+                    showAlert('Please fill all required fields', 'error');
+                    return;
+                }
+            }
+            
+            if (current === 2) {
+                showReview();
+            }
+            
+            showStep(current + 1);
+        };
+
+        // Check if already logged in
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
