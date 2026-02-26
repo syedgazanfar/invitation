@@ -14,15 +14,16 @@ out/
 .env
 .env.local
 .env.*.local
-.env.production
-.env.staging
 apps/backend/.env
+apps/backend/.env.local
 apps/backend/.env.production
 apps/backend/.env.staging
 apps/frontend/.env
 apps/frontend/.env.local
-apps/frontend/.env.production
-apps/frontend/.env.staging
+
+# Note: .env.development and .env.production in apps/frontend are templates with placeholders
+# They are committed to the repository as examples
+# DO NOT put real credentials in these files - use .env.local for local overrides
 
 # IDE
 .vscode/
