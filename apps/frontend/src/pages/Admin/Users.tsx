@@ -13,6 +13,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Button,
   Chip,
   Dialog,
@@ -49,6 +50,8 @@ const AdminUsers: React.FC = () => {
   const [dialogType, setDialogType] = useState<'block' | 'unblock'>('block');
   const [blockReason, setBlockReason] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
 
   useEffect(() => {
     fetchUsers();
@@ -95,6 +98,21 @@ const AdminUsers: React.FC = () => {
     setDialogOpen(true);
   };
 
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Paginate users
+  const paginatedUsers = users.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   return (
     <Box sx={{ py: 4 }}>
       <Container maxWidth="xl">
@@ -130,7 +148,7 @@ const AdminUsers: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map((user: User) => (
+              {paginatedUsers.map((user: User) => (
                 <TableRow key={user.id}>
                   <TableCell>{user.phone}</TableCell>
                   <TableCell>{user.full_name || '-'}</TableCell>
@@ -179,6 +197,17 @@ const AdminUsers: React.FC = () => {
               ))}
             </TableBody>
           </Table>
+          {users.length > 0 && (
+            <TablePagination
+              rowsPerPageOptions={[10, 25, 50, 100]}
+              component="div"
+              count={users.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          )}
         </TableContainer>
 
         {/* Block/Unblock Dialog */}

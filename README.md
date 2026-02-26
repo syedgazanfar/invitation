@@ -271,48 +271,118 @@ Comprehensive test scenarios available in `TESTING_GUIDE.md`
 9. **Payment Security:** Razorpay webhook signature verification
 10. **Admin Security:** Separate admin authentication
 
-## Deployment
+## Production Deployment
 
-### Environment Variables
+### 📋 Pre-Deployment
 
-Create `.env` file in project root:
+Before deploying to production, complete these essential steps:
 
+1. **Review Production Checklist**
+   - Read [`PRODUCTION_CHECKLIST.md`](./PRODUCTION_CHECKLIST.md)
+   - Verify all security requirements
+   - Configure production environment variables
+   - Test critical user flows
+
+2. **Configure Environment**
+   - Backend: Create `apps/backend/.env.production`
+   - Frontend: Create `apps/frontend/.env.production`
+   - See [`ENVIRONMENT_CONFIG.md`](./apps/frontend/ENVIRONMENT_CONFIG.md) for details
+
+3. **API Testing**
+   - Complete [`API_TESTING_CHECKLIST.md`](./API_TESTING_CHECKLIST.md)
+   - Verify all endpoints work correctly
+   - Test payment integration with Razorpay Live keys
+
+4. **Build & Deploy**
+   - Follow [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md)
+   - Use [`PRODUCTION_BUILD.md`](./apps/frontend/PRODUCTION_BUILD.md) for frontend
+   - Monitor deployment with checklist
+
+### 🚀 Quick Production Deployment
+
+**Frontend (Netlify - Recommended):**
 ```bash
+cd apps/frontend
+npm run build
+# Deploy build/ directory to Netlify/Vercel
+```
+
+**Backend (Server):**
+```bash
+cd apps/backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py collectstatic --noinput
+gunicorn config.wsgi:application --bind 0.0.0.0:8000
+```
+
+See [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) for detailed instructions.
+
+### 🔐 Production Environment Variables
+
+#### Backend (.env.production)
+
+Create `.env.production` file in `apps/backend/`:
+
+```env
 # Database
-DB_NAME=invitation_platform
-DB_USER=postgres
-DB_PASSWORD=your_secure_password
-DB_HOST=db
-DB_PORT=5432
+DATABASE_URL=postgresql://user:password@localhost:5432/invitation_db
 
 # Django
 SECRET_KEY=your-secret-key-min-50-chars
 DEBUG=False
-ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+ALLOWED_HOSTS=api.yourdomain.com,yourdomain.com
 
-# Redis
-REDIS_URL=redis://redis:6379/0
-
-# Frontend
-FRONTEND_URL=https://yourdomain.com
+# CORS
 CORS_ALLOWED_ORIGINS=https://yourdomain.com
 
 # Razorpay (Payment)
 RAZORPAY_KEY_ID=rzp_live_...
 RAZORPAY_KEY_SECRET=...
-RAZORPAY_WEBHOOK_SECRET=...
+
+# Email Service
+EMAIL_HOST=smtp.sendgrid.net
+EMAIL_HOST_USER=apikey
+EMAIL_HOST_PASSWORD=<your-sendgrid-api-key>
+DEFAULT_FROM_EMAIL=noreply@yourdomain.com
 
 # SMS (Optional)
-MSG91_AUTH_KEY=...
-MSG91_TEMPLATE_ID=...
+TWILIO_ACCOUNT_SID=...
+TWILIO_AUTH_TOKEN=...
+TWILIO_PHONE_NUMBER=...
 
-# AI Services (Optional)
-GOOGLE_CLOUD_PROJECT=...
-GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
-
-# Security
-FINGERPRINT_SALT=your-secret-salt
+# Media & Static Files
+MEDIA_URL=/media/
+MEDIA_ROOT=/var/www/invitation-app/media
+STATIC_URL=/static/
+STATIC_ROOT=/var/www/invitation-app/staticfiles
 ```
+
+#### Frontend (.env.production)
+
+Create `.env.production` file in `apps/frontend/`:
+
+```env
+# API Configuration
+REACT_APP_API_URL=https://api.yourdomain.com/api/v1
+REACT_APP_PUBLIC_URL=https://yourdomain.com
+REACT_APP_ENV=production
+
+# Payment Gateway
+REACT_APP_RAZORPAY_KEY_ID=rzp_live_xxxxxxxxxx
+
+# Optional: Analytics & Monitoring
+REACT_APP_ENABLE_ANALYTICS=true
+REACT_APP_GA_TRACKING_ID=UA-XXXXXXXXX-X
+REACT_APP_ENABLE_ERROR_REPORTING=true
+REACT_APP_SENTRY_DSN=https://xxxxx@sentry.io/xxxxx
+```
+
+**⚠️ Security Note:** Never commit `.env.production` to git. Keep production keys secure.
+
+See [`ENVIRONMENT_CONFIG.md`](./apps/frontend/ENVIRONMENT_CONFIG.md) for complete configuration guide.
 
 ### Azure Deployment
 
@@ -367,14 +437,25 @@ docker push yourregistry.azurecr.io/frontend:latest
 
 ## Documentation
 
+### Development & Architecture
 - `ARCHITECTURE.md` - Detailed system architecture
 - `API_DOCUMENTATION.md` - Complete API reference
-- `TESTING_GUIDE.md` - Comprehensive test scenarios
 - `QUICK_START.md` - Quick startup guide
 - `TROUBLESHOOTING.md` - Common issues and solutions
 - `ADMIN_GUIDE.md` - Admin dashboard usage
 - `AI_FEATURES_SPECIFICATION.md` - AI features documentation
 - `CLAUDE.md` - Developer guide for Claude Code
+
+### Testing
+- `TESTING_GUIDE.md` - Comprehensive test scenarios
+- `API_TESTING_CHECKLIST.md` - End-to-end API testing checklist
+
+### Production Deployment
+- `DEPLOYMENT_GUIDE.md` - **Complete deployment instructions**
+- `PRODUCTION_CHECKLIST.md` - **Pre-deployment checklist**
+- `PRODUCTION_BUILD.md` - **Frontend build and optimization** (in `apps/frontend/`)
+- `ENVIRONMENT_CONFIG.md` - **Environment variables guide** (in `apps/frontend/`)
+- `CHANGELOG.md` - **Version history and release notes**
 
 ## Troubleshooting
 

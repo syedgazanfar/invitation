@@ -14,6 +14,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Chip,
   Button,
   IconButton,
@@ -42,6 +43,8 @@ const Orders: React.FC = () => {
   const [error, setError] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     fetchOrders();
@@ -85,6 +88,21 @@ const Orders: React.FC = () => {
     setSelectedOrder(order);
     setOpenDialog(true);
   };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Paginate orders
+  const paginatedOrders = orders.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   if (loading) {
     return (
@@ -150,7 +168,7 @@ const Orders: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                orders.map((order: Order) => (
+                paginatedOrders.map((order: Order) => (
                   <TableRow key={order.id}>
                     <TableCell>{order.order_number}</TableCell>
                     <TableCell>{order.plan_name || order.plan?.name}</TableCell>
@@ -187,6 +205,17 @@ const Orders: React.FC = () => {
               )}
             </TableBody>
           </Table>
+          {orders.length > 0 && (
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              component="div"
+              count={orders.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          )}
         </TableContainer>
 
         {/* Order Details Dialog */}

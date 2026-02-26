@@ -21,6 +21,8 @@ import {
   Alert,
   LinearProgress,
   Tooltip,
+  Pagination,
+  Paper,
 } from '@mui/material';
 import {
   Visibility,
@@ -45,6 +47,8 @@ const MyInvitations: React.FC = () => {
   const [error, setError] = useState('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedInvitation, setSelectedInvitation] = useState<Invitation | null>(null);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 9; // 3x3 grid
 
   useEffect(() => {
     fetchInvitations();
@@ -108,6 +112,18 @@ const MyInvitations: React.FC = () => {
     return <Chip label="Inactive" color="default" size="small" />;
   };
 
+  const handleChangePage = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Calculate pagination
+  const pageCount = Math.ceil(invitations.length / itemsPerPage);
+  const paginatedInvitations = invitations.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+
   if (loading) {
     return (
       <Box sx={{ p: 3 }}>
@@ -146,8 +162,9 @@ const MyInvitations: React.FC = () => {
             </Button>
           </Paper>
         ) : (
-          <Grid container spacing={3}>
-            {invitations.map((invitation: Invitation, index: number) => (
+          <>
+            <Grid container spacing={3}>
+              {paginatedInvitations.map((invitation: Invitation, index: number) => (
               <Grid item xs={12} md={6} lg={4} key={invitation.id}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -236,8 +253,21 @@ const MyInvitations: React.FC = () => {
                   </Card>
                 </motion.div>
               </Grid>
-            ))}
-          </Grid>
+              ))}
+            </Grid>
+
+            {pageCount > 1 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                <Pagination
+                  count={pageCount}
+                  page={page}
+                  onChange={handleChangePage}
+                  color="primary"
+                  size="large"
+                />
+              </Box>
+            )}
+          </>
         )}
 
         {/* Action Menu */}
@@ -263,8 +293,5 @@ const MyInvitations: React.FC = () => {
     </Box>
   );
 };
-
-// Import Paper
-import { Paper } from '@mui/material';
 
 export default MyInvitations;

@@ -36,6 +36,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Orders from './pages/Dashboard/Orders';
 import MyInvitations from './pages/Dashboard/MyInvitations';
 import Profile from './pages/Dashboard/Profile';
+import Guests from './pages/Dashboard/Guests';
 import InvitationBuilder from './pages/InvitationBuilder/Builder';
 
 // Public Invitation Page
@@ -90,6 +91,7 @@ function App() {
                 <Route path="/dashboard/orders" element={<Orders />} />
                 <Route path="/dashboard/invitations" element={<MyInvitations />} />
                 <Route path="/dashboard/profile" element={<Profile />} />
+                <Route path="/dashboard/guests" element={<Guests />} />
                 <Route path="/invitation/builder" element={<InvitationBuilder />} />
                 <Route path="/invitation/builder/:orderId" element={<InvitationBuilder />} />
               </Route>

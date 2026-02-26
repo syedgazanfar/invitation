@@ -13,6 +13,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Button,
   Chip,
   Dialog,
@@ -62,6 +63,8 @@ const AdminOrders: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [grantLinks, setGrantLinks] = useState({ regular: 0, test: 0 });
   const [filters, setFilters] = useState({ status: '', search: '' });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
 
   useEffect(() => {
     fetchOrders();
@@ -129,6 +132,21 @@ const AdminOrders: React.FC = () => {
     }
   };
 
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Paginate orders
+  const paginatedOrders = orders.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   return (
     <Box sx={{ py: 4 }}>
       <Container maxWidth="xl">
@@ -185,7 +203,7 @@ const AdminOrders: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {orders.map((order: Order) => (
+              {paginatedOrders.map((order: Order) => (
                 <TableRow key={order.id}>
                   <TableCell>{order.order_number}</TableCell>
                   <TableCell>
@@ -243,6 +261,17 @@ const AdminOrders: React.FC = () => {
               ))}
             </TableBody>
           </Table>
+          {orders.length > 0 && (
+            <TablePagination
+              rowsPerPageOptions={[10, 25, 50, 100]}
+              component="div"
+              count={orders.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          )}
         </TableContainer>
 
         {/* Action Dialog */}
