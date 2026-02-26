@@ -1,26 +1,33 @@
-FROM node:18-alpine AS builder
+# Backend Dockerfile
+FROM python:3.11-slim
 
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app/src
+
+# Set work directory
 WORKDIR /app
 
-COPY package*.json ./
-COPY prisma ./prisma/
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN npm install
+# Install Python dependencies
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy project
+COPY . /app/
 
-RUN npx prisma generate
-RUN npm run build
+# Create directories for media and static files
+RUN mkdir -p /app/media /app/static /app/logs
 
-FROM node:18-alpine
+# Expose port
+EXPOSE 8000
 
-WORKDIR /app
-
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/package*.json ./
-
-EXPOSE 9301
-
-CMD ["npm", "run", "start:prod"]
+# Default command (can be overridden in docker-compose)
+CMD ["python", "src/manage.py", "runserver", "0.0.0.0:8000"]
