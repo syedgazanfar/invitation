@@ -19,14 +19,18 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 echo -e "${YELLOW}[1/5]${NC} Checking environment files..."
-if [ ! -f "apps/backend-python/.env" ]; then
+if [ ! -f "apps/backend/.env" ]; then
     echo "Creating backend .env file..."
-    cp apps/backend-python/.env.example apps/backend-python/.env
+    cp apps/backend/.env.example apps/backend/.env
 fi
 
-if [ ! -f "apps/frontend-mui/.env.local" ]; then
+if [ ! -f "apps/frontend/.env.local" ]; then
     echo "Creating frontend .env file..."
-    cp apps/frontend-mui/.env.example apps/frontend-mui/.env.local
+    if [ -f "apps/frontend/.env.example" ]; then
+        cp apps/frontend/.env.example apps/frontend/.env.local
+    else
+        echo "REACT_APP_API_URL=http://localhost:8000" > apps/frontend/.env.local
+    fi
 fi
 
 echo -e "${YELLOW}[2/5]${NC} Starting Docker containers..."

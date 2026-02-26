@@ -1,0 +1,3 @@
+"""
+Invitations app tests package.
+"""

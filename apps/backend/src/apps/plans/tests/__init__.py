@@ -1,0 +1,3 @@
+"""
+Plans app tests package.
+"""

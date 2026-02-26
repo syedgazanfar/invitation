@@ -54,8 +54,39 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [upiId, setUpiId] = useState('');
+  const [paymentDetails, setPaymentDetails] = useState<{
+    upi_id: string;
+    account_name: string;
+    account_number: string;
+    ifsc_code: string;
+    bank_name?: string;
+  } | null>(null);
+  const [loadingPaymentDetails, setLoadingPaymentDetails] = useState(false);
 
   const steps = ['Select Method', 'Payment', 'Confirmation'];
+
+  // Fetch manual payment details when manual method is selected
+  React.useEffect(() => {
+    const fetchPaymentDetails = async () => {
+      if (paymentMethod === 'manual' && !paymentDetails) {
+        try {
+          setLoadingPaymentDetails(true);
+          setError('');
+          const response = await invitationsApi.getManualPaymentDetails();
+          if (response.success && response.data) {
+            setPaymentDetails(response.data);
+          }
+        } catch (err: any) {
+          console.error('Failed to fetch payment details:', err);
+          setError('Failed to load payment details. Please try again.');
+        } finally {
+          setLoadingPaymentDetails(false);
+        }
+      }
+    };
+
+    fetchPaymentDetails();
+  }, [paymentMethod, paymentDetails]);
 
   const handlePayment = async () => {
     if (paymentMethod === 'razorpay') {
@@ -170,6 +201,27 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 
       case 1:
         if (paymentMethod === 'manual') {
+          if (loadingPaymentDetails) {
+            return (
+              <Box textAlign="center" py={4}>
+                <CircularProgress size={60} />
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                  Loading payment details...
+                </Typography>
+              </Box>
+            );
+          }
+
+          if (!paymentDetails) {
+            return (
+              <Box>
+                <Alert severity="error">
+                  Failed to load payment details. Please try again or contact support.
+                </Alert>
+              </Box>
+            );
+          }
+
           return (
             <Box>
               <Typography variant="h6" gutterBottom>
@@ -182,17 +234,22 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
                 <strong>Amount:</strong> Rs. {amount}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>UPI ID:</strong> inviteme@upi
+                <strong>UPI ID:</strong> {paymentDetails.upi_id}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>Account:</strong> InviteMe Digital Solutions
+                <strong>Account Name:</strong> {paymentDetails.account_name}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>Account Number:</strong> 1234567890
+                <strong>Account Number:</strong> {paymentDetails.account_number}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>IFSC:</strong> SBIN0001234
+                <strong>IFSC Code:</strong> {paymentDetails.ifsc_code}
               </Typography>
+              {paymentDetails.bank_name && (
+                <Typography variant="body1" paragraph>
+                  <strong>Bank:</strong> {paymentDetails.bank_name}
+                </Typography>
+              )}
               <TextField
                 fullWidth
                 label="UPI Transaction ID (Optional)"

@@ -12,3 +12,5 @@ export type { PhoneInputProps } from './PhoneInput';
 
 export { EmailInput } from './EmailInput';
 export type { EmailInputProps } from './EmailInput';
+
+export { default as OTPInput } from './OTPInput';

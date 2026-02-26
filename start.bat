@@ -14,14 +14,18 @@ if errorlevel 1 (
 )
 
 echo [1/5] Checking environment files...
-if not exist "apps\backend-python\.env" (
+if not exist "apps\backend\.env" (
     echo Creating backend .env file...
-    copy apps\backend-python\.env.example apps\backend-python\.env >nul
+    copy apps\backend\.env.example apps\backend\.env >nul
 )
 
-if not exist "apps\frontend-mui\.env.local" (
+if not exist "apps\frontend\.env.local" (
     echo Creating frontend .env file...
-    copy apps\frontend-mui\.env.example apps\frontend-mui\.env.local >nul
+    if exist "apps\frontend\.env.example" (
+        copy apps\frontend\.env.example apps\frontend\.env.local >nul
+    ) else (
+        echo REACT_APP_API_URL=http://localhost:8000 > apps\frontend\.env.local
+    )
 )
 
 echo [2/5] Starting Docker containers...

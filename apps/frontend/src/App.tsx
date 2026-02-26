@@ -21,11 +21,13 @@ import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminRoute from './components/common/AdminRoute';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Public Pages
 import Home from './pages/Home/Home';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword';
 import Plans from './pages/Plans/Plans';
 import Templates from './pages/Plans/Templates';
 
@@ -33,6 +35,7 @@ import Templates from './pages/Plans/Templates';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Orders from './pages/Dashboard/Orders';
 import MyInvitations from './pages/Dashboard/MyInvitations';
+import Profile from './pages/Dashboard/Profile';
 import InvitationBuilder from './pages/InvitationBuilder/Builder';
 
 // Public Invitation Page
@@ -62,17 +65,19 @@ function App() {
   }, [isAuthenticated, loadUser]);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <Navbar />
-          <Box component="main" sx={{ flexGrow: 1 }}>
-            <Routes>
+    <ErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <Navbar />
+            <Box component="main" sx={{ flexGrow: 1 }}>
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/plans" element={<Plans />} />
               <Route path="/templates" element={<Templates />} />
               
@@ -84,6 +89,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/dashboard/orders" element={<Orders />} />
                 <Route path="/dashboard/invitations" element={<MyInvitations />} />
+                <Route path="/dashboard/profile" element={<Profile />} />
                 <Route path="/invitation/builder" element={<InvitationBuilder />} />
                 <Route path="/invitation/builder/:orderId" element={<InvitationBuilder />} />
               </Route>
@@ -101,10 +107,11 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>
-          <Footer />
-        </Box>
-      </Router>
-    </ThemeProvider>
+            <Footer />
+          </Box>
+        </Router>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

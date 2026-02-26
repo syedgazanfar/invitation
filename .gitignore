@@ -14,8 +14,9 @@ out/
 .env
 .env.local
 .env.*.local
-apps/backend-python/.env
 apps/backend/.env
+apps/frontend/.env
+apps/frontend/.env.local
 
 # IDE
 .vscode/
@@ -35,9 +36,22 @@ logs/
 # Testing
 coverage/
 
-# Prisma
-apps/backend/prisma/migrations/*
-!apps/backend/prisma/migrations/.gitkeep
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+
+# Django
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+
+# Archive (old implementations)
+archive/
 
 # Misc
 .turbo

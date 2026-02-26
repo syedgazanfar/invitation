@@ -194,6 +194,16 @@ export const invitationsApi = {
     razorpay_order_id: string;
     razorpay_signature: string;
   }) => apiService.post('/invitations/payment/razorpay/verify/', data),
+
+  // Get manual payment details
+  getManualPaymentDetails: () =>
+    apiService.get<{
+      upi_id: string;
+      account_name: string;
+      account_number: string;
+      ifsc_code: string;
+      bank_name?: string;
+    }>('/invitations/payment/manual-details/'),
 };
 
 // Public Invitation API (no auth required)
