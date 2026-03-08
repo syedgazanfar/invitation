@@ -78,6 +78,12 @@ export class EventsController {
   }
 
   // Static sub-routes must come before the generic /:id/guests route
+  @Get(':id/analytics')
+  async getAnalytics(@CurrentUser() user: CurrentUserPayload, @Param('id') eventId: string) {
+    const analytics = await this.eventsService.getAnalytics(eventId, user.userId);
+    return { success: true, data: analytics };
+  }
+
   @Get(':id/guests/stats')
   async getGuestStats(@CurrentUser() user: CurrentUserPayload, @Param('id') eventId: string) {
     await this.eventsService.findOne(eventId, user.userId);

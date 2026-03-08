@@ -136,6 +136,9 @@ export const eventsAPI = {
 
   delete: (id: string) =>
     api.delete(`/events/${id}`),
+
+  getAnalytics: (id: string) =>
+    api.get(`/events/${id}/analytics`),
 };
 
 // Invitations API (public)

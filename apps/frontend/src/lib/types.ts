@@ -80,6 +80,25 @@ export interface Guest {
   createdAt: string;
 }
 
+export interface GuestAnalytics {
+  summary: {
+    total: number;
+    regularCount: number;
+    testCount: number;
+    uniqueIPs: number;
+    firstRegistration: string | null;
+    lastRegistration: string | null;
+    avgPerDay: number;
+    peakDay: { date: string; count: number } | null;
+    peakHour: number | null;
+  };
+  timeline: Array<{ date: string; regular: number; test: number }>;
+  hourlyDistribution: Array<{ hour: number; count: number }>;
+  devices: Array<{ name: string; count: number; pct: number }>;
+  browsers: Array<{ name: string; count: number; pct: number }>;
+  os: Array<{ name: string; count: number; pct: number }>;
+}
+
 // Meta returned by GET /invite/:slug
 export interface InvitationMeta {
   slug: string;
