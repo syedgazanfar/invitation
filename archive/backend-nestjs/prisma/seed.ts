@@ -1,5 +1,5 @@
 import { PrismaClient, PlanCode } from '@prisma/client';
-import { allTemplates } from '../src/templates/data';
+import { allTemplates } from '../src/database/templates/data';
 
 const prisma = new PrismaClient();
 
@@ -177,6 +177,23 @@ async function main() {
     skipDuplicates: true,
   });
   console.log(`Created ${createdTemplates.count} templates`);
+
+  // Seed Admin User
+  console.log('Seeding admin user...');
+  const bcrypt = await import('bcrypt');
+  const adminPasswordHash = await bcrypt.hash('admin123456', 10);
+  await prisma.user.upsert({
+    where: { email: 'admin@wedding.com' },
+    update: { isAdmin: true },
+    create: {
+      email: 'admin@wedding.com',
+      passwordHash: adminPasswordHash,
+      isAdmin: true,
+      preferredCountry: 'US',
+      preferredCurrency: 'USD',
+    },
+  });
+  console.log('Admin user created: admin@wedding.com / admin123456');
 
   console.log('Database seeding completed successfully!');
   console.log(`

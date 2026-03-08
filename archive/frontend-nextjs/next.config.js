@@ -2,10 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['placeholder.cdn'],
+    domains: ['placeholder.com'],
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9301/api',
   },
 };
 

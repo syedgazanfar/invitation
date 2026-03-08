@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useParams } from 'next/navigation';
 import { eventsAPI } from '@/lib/api';
 import { Event, Guest } from '@/types';
 
 export default function EventDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const eventId = params.id as string;
 
   const [event, setEvent] = useState<Event | null>(null);
@@ -61,6 +63,16 @@ export default function EventDetailsPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this event? This cannot be undone.')) return;
+    try {
+      await eventsAPI.delete(eventId);
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to delete event');
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-12">Loading event...</div>;
   }
@@ -84,13 +96,23 @@ export default function EventDetailsPage() {
             {new Date(event.weddingDate).toLocaleDateString()} at {event.startTime}
           </p>
         </div>
-        <span className={`px-4 py-2 rounded-full text-sm font-medium ${
-          event.status === 'ACTIVE' ? 'bg-green-200 text-green-800' :
-          event.status === 'DRAFT' ? 'bg-gray-200 text-gray-800' :
-          'bg-red-200 text-red-800'
-        }`}>
-          {event.status}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className={`px-4 py-2 rounded-full text-sm font-medium ${
+            event.status === 'ACTIVE' ? 'bg-green-200 text-green-800' :
+            event.status === 'DRAFT' ? 'bg-gray-200 text-gray-800' :
+            'bg-red-200 text-red-800'
+          }`}>
+            {event.status}
+          </span>
+          {event.status === 'DRAFT' && (
+            <button
+              onClick={handleDelete}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+            >
+              Delete
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Event Details */}

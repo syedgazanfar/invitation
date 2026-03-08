@@ -77,6 +77,12 @@ export default function InvitationPage() {
   const playAnimations = () => {
     if (!animationRef.current || !invitationData) return;
 
+    // Set initial states via GSAP to avoid conflicts with Tailwind CSS custom properties
+    gsap.set('.step-1', { opacity: 0, y: 32 });
+    gsap.set('.step-2', { opacity: 0, scale: 0.95 });
+    gsap.set('.step-3', { opacity: 0, y: 32 });
+    gsap.set('.step-4', { opacity: 0, y: 32 });
+
     const timeline = gsap.timeline({
       onComplete: () => {
         setCurrentStep(5);
@@ -241,14 +247,14 @@ export default function InvitationPage() {
         <div className="min-h-screen flex items-center justify-center px-4 py-12">
           <div className="max-w-4xl w-full space-y-12">
             {/* Step 1: Welcome Guest */}
-            <div className="step-1 opacity-0 translate-y-8 text-center">
+            <div className="step-1 text-center">
               <h1 className="text-4xl md:text-6xl font-bold text-primary-600 mb-4">
                 Welcome, {guest.name}!
               </h1>
             </div>
 
             {/* Step 2: Couple Names */}
-            <div className="step-2 opacity-0 scale-95 text-center">
+            <div className="step-2 text-center">
               <div className="bg-white rounded-2xl shadow-2xl p-12">
                 <p className="text-gray-600 text-lg mb-4">You are cordially invited to celebrate the wedding of</p>
                 <h2 className="text-5xl md:text-7xl font-serif font-bold text-gray-900 mb-2">
@@ -262,7 +268,7 @@ export default function InvitationPage() {
             </div>
 
             {/* Step 3: Date and Time */}
-            <div className="step-3 opacity-0 translate-y-8 text-center">
+            <div className="step-3 text-center">
               <div className="bg-white rounded-2xl shadow-xl p-8">
                 <div className="text-6xl mb-4">📅</div>
                 <p className="text-2xl font-semibold text-gray-900 mb-2">
@@ -280,7 +286,7 @@ export default function InvitationPage() {
             </div>
 
             {/* Step 4: Venue */}
-            <div className="step-4 opacity-0 translate-y-8">
+            <div className="step-4">
               <div className="bg-white rounded-2xl shadow-xl p-8">
                 <div className="text-center mb-6">
                   <div className="text-6xl mb-4">📍</div>

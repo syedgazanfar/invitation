@@ -15,11 +15,10 @@ export default function DashboardLayout({
   const { isAuthenticated, clearAuth, user } = useAuthStore();
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
+    if (!isAuthenticated) {
       router.push('/login');
     }
-  }, [router]);
+  }, [isAuthenticated, router]);
 
   const handleLogout = async () => {
     try {
@@ -53,6 +52,18 @@ export default function DashboardLayout({
                   className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Create Event
+                </Link>
+                <Link
+                  href="/dashboard/profile"
+                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Profile
+                </Link>
+                <Link
+                  href="/admin/dashboard"
+                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Admin
                 </Link>
               </div>
             </div>

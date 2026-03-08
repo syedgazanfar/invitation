@@ -133,6 +133,9 @@ export const eventsAPI = {
     api.get(`/events/${id}/guests/export`, {
       responseType: 'blob',
     }),
+
+  delete: (id: string) =>
+    api.delete(`/events/${id}`),
 };
 
 // Invitations API (public)
@@ -145,4 +148,19 @@ export const invitationsAPI = {
 
   getSlots: (slug: string) =>
     api.get(`/invite/${slug}/slots`),
+};
+
+// Admin API (admin users only)
+export const adminAPI = {
+  getStats: () =>
+    api.get('/admin/stats'),
+
+  getUsers: (search?: string) =>
+    api.get('/admin/users', { params: search ? { search } : {} }),
+
+  getEvents: (status?: string, page = 1, limit = 20) =>
+    api.get('/admin/events', { params: { ...(status ? { status } : {}), page, limit } }),
+
+  toggleAdmin: (userId: string) =>
+    api.patch(`/admin/users/${userId}/toggle-admin`),
 };

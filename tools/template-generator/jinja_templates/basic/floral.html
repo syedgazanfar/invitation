@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ bride_name }} & {{ groom_name }} — Wedding Invitation</title>
+  <link href="https://fonts.googleapis.com/css2?family={{ heading_font|replace(' ','+') }}:ital,wght@0,400;0,600;1,400&family={{ body_font|replace(' ','+') }}:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vivus/0.4.6/vivus.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --pri:{{ primary }};--sec:{{ secondary }};--acc:{{ accent }};
+      --svg:{{ svg_stroke }};--txt:{{ text_color }};
+      --hf:'{{ heading_font }}',Georgia,serif;--bf:'{{ body_font }}',system-ui,sans-serif;
+    }
+    body{background:var(--pri);color:var(--txt);font-family:var(--bf);min-height:100vh;overflow-x:hidden}
+    .wrap{max-width:680px;margin:0 auto;padding:60px 36px;text-align:center;position:relative}
+    .frame{position:relative;background:#fff;padding:56px 48px;box-shadow:0 4px 40px rgba(0,0,0,.07)}
+
+    /* SVG corners */
+    .corner{position:absolute;width:110px;height:110px}
+    .corner.tl{top:-2px;left:-2px}
+    .corner.tr{top:-2px;right:-2px;transform:scaleX(-1)}
+    .corner.bl{bottom:-2px;left:-2px;transform:scaleY(-1)}
+    .corner.br{bottom:-2px;right:-2px;transform:scale(-1)}
+    .corner svg{width:100%;height:100%}
+    .corner path,.corner circle,.corner line{stroke:var(--svg);stroke-width:1.2;fill:none}
+
+    /* Content (hidden until SVG drawn) */
+    .content{opacity:0}
+    .eyebrow{font-size:.7rem;letter-spacing:.38em;text-transform:uppercase;color:var(--acc);margin-bottom:28px}
+    .names{font-family:var(--hf);font-size:clamp(2.4rem,7vw,4.2rem);font-weight:600;color:var(--txt);line-height:1.05}
+    .amp{display:block;font-style:italic;font-weight:400;font-size:.45em;color:var(--acc);margin:8px 0}
+    .rule{display:flex;align-items:center;gap:12px;margin:28px auto;max-width:240px}
+    .rule-line{flex:1;height:1px;background:var(--sec)}
+    .rule-flower{font-size:1rem;color:var(--acc);flex-shrink:0}
+    .dear{font-family:var(--hf);font-style:italic;color:var(--acc);margin-bottom:28px;font-size:1.05rem}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;text-align:left;margin-bottom:20px}
+    .full{grid-column:1/-1}
+    .lbl{font-size:.62rem;letter-spacing:.28em;text-transform:uppercase;color:var(--acc);font-weight:600;margin-bottom:5px}
+    .val{font-family:var(--hf);font-size:1.1rem;color:var(--txt)}
+    .msg{margin-top:24px;padding:20px 28px;background:var(--pri);border:1px solid var(--sec);
+         font-family:var(--hf);font-style:italic;font-size:1rem;line-height:1.7}
+
+    @media(max-width:520px){.grid{grid-template-columns:1fr}.frame{padding:40px 24px}.wrap{padding:40px 16px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="frame" id="frame">
+    <!-- Floral SVG corners -->
+    <div class="corner tl">
+      <svg id="svg-tl" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10,100 C10,50 60,10 100,10"/>
+        <path d="M10,80 C25,45 55,20 85,10"/>
+        <path d="M2,60 C18,35 40,18 62,10"/>
+        <circle cx="18" cy="18" r="5"/>
+        <circle cx="30" cy="10" r="3"/>
+        <circle cx="10" cy="30" r="3"/>
+        <path d="M18,18 Q22,8 30,10 Q26,18 18,18Z"/>
+        <path d="M18,18 Q8,22 10,30 Q18,26 18,18Z"/>
+        <circle cx="55" cy="12" r="2"/>
+        <circle cx="12" cy="55" r="2"/>
+        <circle cx="35" cy="35" r="1.5"/>
+      </svg>
+    </div>
+    <div class="corner tr">
+      <svg id="svg-tr" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10,100 C10,50 60,10 100,10"/>
+        <path d="M10,80 C25,45 55,20 85,10"/>
+        <path d="M2,60 C18,35 40,18 62,10"/>
+        <circle cx="18" cy="18" r="5"/>
+        <circle cx="30" cy="10" r="3"/>
+        <circle cx="10" cy="30" r="3"/>
+        <path d="M18,18 Q22,8 30,10 Q26,18 18,18Z"/>
+        <path d="M18,18 Q8,22 10,30 Q18,26 18,18Z"/>
+        <circle cx="55" cy="12" r="2"/>
+        <circle cx="12" cy="55" r="2"/>
+        <circle cx="35" cy="35" r="1.5"/>
+      </svg>
+    </div>
+    <div class="corner bl">
+      <svg id="svg-bl" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10,100 C10,50 60,10 100,10"/>
+        <path d="M10,80 C25,45 55,20 85,10"/>
+        <path d="M2,60 C18,35 40,18 62,10"/>
+        <circle cx="18" cy="18" r="5"/>
+        <circle cx="30" cy="10" r="3"/>
+        <circle cx="10" cy="30" r="3"/>
+        <path d="M18,18 Q22,8 30,10 Q26,18 18,18Z"/>
+        <path d="M18,18 Q8,22 10,30 Q18,26 18,18Z"/>
+        <circle cx="55" cy="12" r="2"/>
+        <circle cx="12" cy="55" r="2"/>
+        <circle cx="35" cy="35" r="1.5"/>
+      </svg>
+    </div>
+    <div class="corner br">
+      <svg id="svg-br" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10,100 C10,50 60,10 100,10"/>
+        <path d="M10,80 C25,45 55,20 85,10"/>
+        <path d="M2,60 C18,35 40,18 62,10"/>
+        <circle cx="18" cy="18" r="5"/>
+        <circle cx="30" cy="10" r="3"/>
+        <circle cx="10" cy="30" r="3"/>
+        <path d="M18,18 Q22,8 30,10 Q26,18 18,18Z"/>
+        <path d="M18,18 Q8,22 10,30 Q18,26 18,18Z"/>
+        <circle cx="55" cy="12" r="2"/>
+        <circle cx="12" cy="55" r="2"/>
+        <circle cx="35" cy="35" r="1.5"/>
+      </svg>
+    </div>
+
+    <!-- Main content -->
+    <div class="content" id="content">
+      <p class="eyebrow">You Are Cordially Invited</p>
+      <div class="names">{{ bride_name }}<span class="amp">&amp;</span>{{ groom_name }}</div>
+      <div class="rule"><div class="rule-line"></div><span class="rule-flower">✿</span><div class="rule-line"></div></div>
+      <p class="dear">Dear {{ guest_name }},</p>
+      <div class="grid">
+        <div>
+          <div class="lbl">Date</div>
+          <div class="val">{{ wedding_date }}</div>
+        </div>
+        <div>
+          <div class="lbl">Time</div>
+          <div class="val">{{ start_time }}</div>
+        </div>
+        <div class="full">
+          <div class="lbl">Venue</div>
+          <div class="val">{{ venue_name }}</div>
+        </div>
+        <div class="full">
+          <div class="lbl">Location</div>
+          <div class="val">{{ address }}, {{ city }}, {{ country }}</div>
+        </div>
+      </div>
+      {% if message %}
+      <div class="msg">"{{ message }}"</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+// Draw all 4 corners then reveal content
+var drawn=0;
+['svg-tl','svg-tr','svg-bl','svg-br'].forEach(function(id,i){
+  setTimeout(function(){
+    new Vivus(id,{type:'delayed',duration:120,animTimingFunction:Vivus.EASE_OUT},function(){
+      drawn++;
+      if(drawn===4){
+        gsap.to('#content',{opacity:1,duration:1,ease:'power2.out'});
+      }
+    });
+  },i*80);
+});
+</script>
+</body>
+</html>

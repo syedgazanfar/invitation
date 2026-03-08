@@ -1,7 +1,10 @@
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsNotEmpty, Length } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class SignupDto {
   @IsEmail()
+  @IsNotEmpty()
+  @Transform(({ value }) => value?.toLowerCase().trim())
   email: string;
 
   @IsString()
@@ -10,9 +13,13 @@ export class SignupDto {
 
   @IsOptional()
   @IsString()
+  @Length(2, 2)
+  @Transform(({ value }) => value?.toUpperCase())
   preferredCountry?: string;
 
   @IsOptional()
   @IsString()
+  @Length(3, 3)
+  @Transform(({ value }) => value?.toUpperCase())
   preferredCurrency?: string;
 }

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amelia & James</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Raleway:wght@100;300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#0A0A0A;--acc:#E8E8E8;--hi:#A0A0A0;
+      --txt:#FFFFFF;--hf:'Cinzel Decorative',serif;--bf:'Raleway',system-ui,sans-serif;
+    }
+    html,body{height:100%}
+    body{background:var(--bg);color:var(--txt);font-family:var(--bf);overflow-x:hidden}
+
+    @keyframes shimmer-in{0%{opacity:0;letter-spacing:.8em}100%{opacity:1;letter-spacing:.18em}}
+    @keyframes line-in{from{width:0}to{width:60px}}
+
+    /* Black bars cinematic open */
+    .bar-top,.bar-bot{
+      position:fixed;left:0;right:0;height:12vh;background:var(--bg);
+      z-index:100;transition:height .9s cubic-bezier(.77,0,.18,1) .2s;
+    }
+    .bar-top{top:0}.bar-bot{bottom:0}
+    .bars-open .bar-top,.bars-open .bar-bot{height:0}
+
+    .stage{min-height:100vh;display:flex;flex-direction:column;align-items:center;
+           justify-content:center;text-align:center;padding:80px 40px;position:relative}
+
+    /* Letterbox scan line */
+    .scan{position:absolute;top:0;left:0;right:0;height:1px;
+          background:linear-gradient(90deg,transparent,var(--acc),transparent);
+          animation:scan 3s ease-in-out 1.8s 1 forwards;opacity:0}
+    @keyframes scan{
+      0%{opacity:1;top:0}
+      100%{opacity:0;top:100%}
+    }
+
+    .eyebrow{font-family:var(--bf);font-size:.62rem;letter-spacing:.5em;text-transform:uppercase;
+             color:var(--acc);margin-bottom:48px;opacity:0}
+    .names-wrap{overflow:hidden;margin-bottom:12px}
+    .bride-name,.groom-name{
+      font-family:var(--hf);font-size:clamp(3rem,10vw,6.5rem);font-weight:700;
+      color:var(--txt);display:block;line-height:.95;opacity:0;
+    }
+    .amp-row{display:flex;align-items:center;gap:24px;margin:16px auto;max-width:320px;opacity:0}
+    .amp-line{flex:1;height:1px;background:var(--acc)}
+    .amp-word{font-family:var(--hf);font-size:1.6rem;color:var(--acc)}
+
+    .date-line{font-family:var(--bf);font-weight:100;font-size:clamp(.9rem,2.5vw,1.15rem);
+               letter-spacing:.18em;text-transform:uppercase;color:var(--txt);
+               opacity:.65;margin:28px 0;opacity:0}
+
+    .accent-bar{width:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);
+                margin:32px auto;opacity:0}
+
+    .info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;
+               background:rgba(255,255,255,.08);max-width:680px;width:100%;margin:36px auto;opacity:0}
+    .info-cell{background:var(--bg);padding:28px 20px}
+    .info-cell.wide{grid-column:span 2}
+    .lbl{font-size:.55rem;letter-spacing:.35em;text-transform:uppercase;color:var(--acc);
+         font-weight:600;margin-bottom:8px}
+    .val{font-family:var(--hf);font-size:1rem;color:var(--txt);line-height:1.35}
+
+    .dear{font-family:var(--bf);font-style:italic;font-size:1.05rem;color:var(--acc);
+          margin-bottom:40px;opacity:0}
+
+    .msg{max-width:540px;margin:32px auto 0;font-family:var(--hf);font-style:italic;
+         font-size:1.1rem;line-height:1.75;color:var(--txt);opacity:.75;opacity:0}
+
+    @media(max-width:580px){
+      .info-grid{grid-template-columns:1fr}.info-cell.wide{grid-column:1}
+      .stage{padding:60px 24px}
+    }
+  </style>
+</head>
+<body>
+<div class="bar-top" id="bar-top"></div>
+<div class="bar-bot" id="bar-bot"></div>
+
+<div class="stage">
+  <div class="scan"></div>
+  <p class="eyebrow" id="e-eyebrow">— A Wedding Celebration —</p>
+  <p class="dear" id="e-dear">Dear Distinguished Guest,</p>
+  <div class="names-wrap">
+    <span class="bride-name" id="e-bride">Amelia</span>
+  </div>
+  <div class="amp-row" id="e-amp">
+    <div class="amp-line"></div>
+    <span class="amp-word">&amp;</span>
+    <div class="amp-line"></div>
+  </div>
+  <div class="names-wrap">
+    <span class="groom-name" id="e-groom">James</span>
+  </div>
+  <p class="date-line" id="e-date">Saturday, June 14, 2026 &nbsp;·&nbsp; 4:00 PM</p>
+  <div class="accent-bar" id="e-bar"></div>
+  <div class="info-grid" id="e-grid">
+    <div class="info-cell wide">
+      <div class="lbl">Venue</div>
+      <div class="val">The Grand Pavilion, London</div>
+    </div>
+    <div class="info-cell">
+      <div class="lbl">Address</div>
+      <div class="val">123 Garden Lane, United Kingdom</div>
+    </div>
+  </div>
+  <div class="msg" id="e-msg">"Your presence is the greatest gift we could ask for. We cannot wait to celebrate with you."</div>
+</div>
+
+<script>
+// Cinematic sequence
+var tl=gsap.timeline({defaults:{ease:'power3.out'}});
+tl.add(function(){document.body.classList.add('bars-open')},0)
+  .to('#e-eyebrow',{opacity:1,letterSpacing:'.45em',duration:1.2},1)
+  .to('#e-dear',   {opacity:1,y:0,duration:.8,from:{y:20}},1.4)
+  .to('#e-bride',  {opacity:1,y:0,duration:.9,from:{y:60}},1.7)
+  .to('#e-amp',    {opacity:1,duration:.6},2.2)
+  .to('#e-groom',  {opacity:1,y:0,duration:.9,from:{y:60}},2.4)
+  .to('#e-date',   {opacity:.65,duration:.8},3)
+  .to('#e-bar',    {opacity:1,width:'240px',duration:.8},3.2)
+  .to('#e-grid',   {opacity:1,y:0,duration:.8,from:{y:24}},3.6)
+  .to('#e-msg',    {opacity:.75,duration:.8},4)
+  .add(function(){
+    confetti({
+      particleCount:100,spread:80,
+      colors:['#E0E0E0','#C0C0C0','#A0A0A0','#808080'],
+      origin:{y:.4},startVelocity:28
+    });
+  },4.2);
+</script>
+</body>
+</html>

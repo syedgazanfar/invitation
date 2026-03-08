@@ -6,7 +6,7 @@ import { eventsAPI, plansAPI, templatesAPI } from '@/lib/api';
 import { Plan, Template, PlanCode } from '@/types';
 import { useAuthStore } from '@/store/authStore';
 
-type Step = 'details' | 'plan' | 'template' | 'payment';
+type Step = 'details' | 'plan' | 'template';
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -19,8 +19,6 @@ export default function NewEventPage() {
   // Data
   const [plans, setPlans] = useState<Plan[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [pricing, setPricing] = useState<any>(null);
-
   // Form data
   const [eventData, setEventData] = useState({
     brideName: '',
@@ -62,20 +60,6 @@ export default function NewEventPage() {
     }
   };
 
-  const loadPricing = async () => {
-    if (!selectedPlan) return;
-
-    try {
-      const response = await plansAPI.getPricing(user?.preferredCountry || 'US');
-      const planPricing = response.data.data.plans.find(
-        (p: any) => p.planCode === selectedPlan
-      );
-      setPricing(planPricing);
-    } catch (err) {
-      console.error('Failed to load pricing:', err);
-    }
-  };
-
   const handleDetailsNext = () => {
     if (!eventData.brideName || !eventData.groomName || !eventData.weddingDate ||
         !eventData.startTime || !eventData.venueName || !eventData.address ||
@@ -93,10 +77,8 @@ export default function NewEventPage() {
     setCurrentStep('template');
   };
 
-  const handleTemplateSelect = async (templateId: string) => {
+  const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
-    await loadPricing();
-    setCurrentStep('payment');
   };
 
   const handleCreateEvent = async () => {
@@ -143,18 +125,18 @@ export default function NewEventPage() {
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          {(['details', 'plan', 'template', 'payment'] as Step[]).map((step, index) => (
+          {(['details', 'plan', 'template'] as Step[]).map((step, index) => (
             <div key={step} className="flex items-center flex-1">
               <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
                 currentStep === step ? 'bg-primary-600 text-white' :
-                ['details', 'plan', 'template', 'payment'].indexOf(currentStep) > index ?
+                ['details', 'plan', 'template'].indexOf(currentStep) > index ?
                 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'
               }`}>
                 {index + 1}
               </div>
-              {index < 3 && (
+              {index < 2 && (
                 <div className={`flex-1 h-1 mx-2 ${
-                  ['details', 'plan', 'template', 'payment'].indexOf(currentStep) > index ?
+                  ['details', 'plan', 'template'].indexOf(currentStep) > index ?
                   'bg-green-600' : 'bg-gray-300'
                 }`} />
               )}
@@ -165,7 +147,7 @@ export default function NewEventPage() {
           <span>Details</span>
           <span>Plan</span>
           <span>Template</span>
-          <span>Payment</span>
+
         </div>
       </div>
 
@@ -369,57 +351,15 @@ export default function NewEventPage() {
             <button onClick={() => setCurrentStep('plan')} className="btn-secondary">
               Back
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step: Payment */}
-      {currentStep === 'payment' && pricing && (
-        <div className="card">
-          <h2 className="text-2xl font-semibold mb-6">Payment</h2>
-
-          <div className="bg-gray-50 rounded-lg p-6 mb-6">
-            <h3 className="font-semibold mb-4">Order Summary</h3>
-
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Plan: {pricing.planName}</span>
-                <span>{pricing.currency} {pricing.basePriceLocal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Tax ({(pricing.breakdown.taxRate * 100).toFixed(0)}%)</span>
-                <span>{pricing.currency} {pricing.tax.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Service Fee</span>
-                <span>{pricing.currency} {pricing.serviceFee.toFixed(2)}</span>
-              </div>
-              <div className="border-t pt-2 mt-2">
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>{pricing.currency} {pricing.finalPrice.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800">
-              This is a demo. Payment processing is simulated. Click "Complete Payment" to activate your event.
-            </p>
-          </div>
-
-          <div className="flex justify-between">
-            <button onClick={() => setCurrentStep('template')} className="btn-secondary">
-              Back
-            </button>
-            <button
-              onClick={handleCreateEvent}
-              disabled={loading}
-              className="btn-primary disabled:opacity-50"
-            >
-              {loading ? 'Processing...' : 'Complete Payment'}
-            </button>
+            {selectedTemplate && (
+              <button
+                onClick={handleCreateEvent}
+                disabled={loading}
+                className="btn-primary disabled:opacity-50"
+              >
+                {loading ? 'Creating...' : 'Create Event'}
+              </button>
+            )}
           </div>
         </div>
       )}

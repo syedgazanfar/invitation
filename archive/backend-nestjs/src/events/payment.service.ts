@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PricingService } from '../pricing/pricing.service';
 import { PaymentStatus } from '@prisma/client';
@@ -13,39 +18,35 @@ export class PaymentService {
     private pricingService: PricingService,
   ) {}
 
-  /**
-   * Process payment (stubbed implementation)
-   * In production, this would integrate with Stripe/PayPal
-   */
   async processPayment(
     eventId: string,
+    userId: string,
     countryCode: string,
     paymentMethod: string = 'card',
-    simulateFailure: boolean = false
+    simulateFailure: boolean = false,
   ) {
-    // Get event details
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
-      include: { plan: true },
+      include: { plan: true, payment: true },
     });
 
     if (!event) {
-      throw new Error('Event not found');
+      throw new NotFoundException('Event not found');
     }
 
-    // Calculate pricing
-    const pricing = await this.pricingService.calculatePlanPrice(
-      event.planCode,
-      countryCode
-    );
+    if (event.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to process payment for this event');
+    }
 
-    // Simulate payment processing
+    if (event.payment) {
+      throw new BadRequestException('Payment has already been processed for this event');
+    }
+
+    const pricing = await this.pricingService.calculatePlanPrice(event.planCode, countryCode);
+
     const transactionId = `TXN_${nanoid()}`;
-
-    // Simulate success/failure
     const paymentStatus = simulateFailure ? PaymentStatus.FAILED : PaymentStatus.COMPLETED;
 
-    // Create payment record
     const payment = await this.prisma.payment.create({
       data: {
         eventId,
@@ -66,8 +67,6 @@ export class PaymentService {
   }
 
   async getPaymentByEventId(eventId: string) {
-    return this.prisma.payment.findUnique({
-      where: { eventId },
-    });
+    return this.prisma.payment.findUnique({ where: { eventId } });
   }
 }

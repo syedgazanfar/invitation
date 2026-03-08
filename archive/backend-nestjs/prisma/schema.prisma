@@ -16,6 +16,7 @@ model User {
   passwordHash       String   @map("password_hash")
   preferredCountry   String   @default("US") @map("preferred_country")
   preferredCurrency  String   @default("USD") @map("preferred_currency")
+  isAdmin            Boolean  @default(false) @map("is_admin")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 

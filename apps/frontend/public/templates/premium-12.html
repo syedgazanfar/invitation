@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amelia & James — Wedding Invitation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=Quattrocento+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@tsparticles/slim/tsparticles.slim.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --pri:#100818;--sec:#1A1028;--acc:#D870FF;--star:#D870FF;
+      --txt:#F0D8FF;--hf:'Crimson Text',Georgia,serif;--bf:'Quattrocento Sans',system-ui,sans-serif;
+    }
+    body{background:var(--pri);color:var(--txt);font-family:var(--bf);min-height:100vh;overflow-x:hidden;
+         position:relative}
+    #tsparticles{position:fixed!important;top:0!important;left:0!important;
+      width:100%!important;height:100%!important;z-index:0!important;pointer-events:none!important}
+
+    .wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:80px 36px;text-align:center}
+    .card{
+      background:rgba(10,10,40,.7);
+      backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;
+      padding:56px 48px;
+      box-shadow:0 0 80px rgba(0,0,80,.6),inset 0 1px 0 rgba(255,255,255,.1);
+      opacity:0;
+    }
+
+    @keyframes star-glow{0%,100%{text-shadow:0 0 12px var(--acc)}50%{text-shadow:0 0 28px var(--acc),0 0 48px var(--star)}}
+    .glow{animation:star-glow 3s ease-in-out infinite}
+
+    .eyebrow{font-size:.65rem;letter-spacing:.4em;text-transform:uppercase;color:var(--acc);margin-bottom:28px;opacity:.9}
+    .names{font-family:var(--hf);font-size:clamp(2.6rem,8vw,4.8rem);font-weight:700;
+           color:var(--txt);line-height:1;margin-bottom:8px;class:glow}
+    .amp{font-family:var(--hf);font-style:italic;font-size:1.6rem;color:var(--acc);
+         display:block;margin:10px 0}
+    .stars-row{font-size:1.1rem;letter-spacing:.5rem;margin:20px 0;color:var(--acc);opacity:.8}
+
+    .rule{display:flex;align-items:center;gap:14px;margin:28px auto;max-width:300px}
+    .rule-line{flex:1;height:1px;background:rgba(255,255,255,.15)}
+    .rule-star{color:var(--acc);font-size:.9rem;flex-shrink:0}
+
+    .dear{font-family:var(--hf);font-style:italic;color:var(--acc);font-size:1.05rem;margin-bottom:36px}
+
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;text-align:left;margin-bottom:24px}
+    .full{grid-column:1/-1}
+    .lbl{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--acc);
+         font-weight:600;margin-bottom:5px;opacity:.8}
+    .val{font-family:var(--hf);font-size:1.05rem;color:var(--txt)}
+    .det-rule{grid-column:1/-1;height:1px;background:rgba(255,255,255,.08);margin:4px 0}
+
+    .msg{border-top:1px solid rgba(255,255,255,.1);padding-top:24px;margin-top:8px;
+         font-family:var(--hf);font-style:italic;font-size:.95rem;line-height:1.75;color:var(--txt);opacity:.85}
+
+    @media(max-width:520px){.grid{grid-template-columns:1fr}.card{padding:36px 24px}.wrap{padding:56px 16px}}
+  </style>
+</head>
+<body>
+<div id="tsparticles"></div>
+<div class="wrap">
+  <div class="card" id="card">
+    <p class="eyebrow">✦ &nbsp; You Are Invited &nbsp; ✦</p>
+    <div class="names glow" id="names">
+      Amelia
+      <span class="amp">&amp;</span>
+      James
+    </div>
+    <div class="stars-row">★ ★ ★</div>
+    <div class="rule"><div class="rule-line"></div><span class="rule-star">✦</span><div class="rule-line"></div></div>
+    <p class="dear">Dear Distinguished Guest,<br>your presence would light up our celebration.</p>
+    <div class="grid">
+      <div><div class="lbl">Date</div><div class="val">Saturday, June 14, 2026</div></div>
+      <div><div class="lbl">Time</div><div class="val">4:00 PM</div></div>
+      <div class="det-rule"></div>
+      <div class="full"><div class="lbl">Venue</div><div class="val">The Grand Pavilion</div></div>
+      <div class="full"><div class="lbl">Location</div><div class="val">123 Garden Lane, London, United Kingdom</div></div>
+    </div>
+    <div class="msg">"Your presence is the greatest gift we could ask for. We cannot wait to celebrate with you."</div>
+  </div>
+</div>
+
+<script>
+tsParticles.load("tsparticles",{
+  background:{color:"transparent"},
+  particles:{
+    number:{value:80},
+    color:{value:"#D870FF"},
+    shape:{type:"circle"},
+    opacity:{value:{min:.1,max:.7},animation:{enable:true,speed:1,minimumValue:.1}},
+    size:{value:{min:.5,max:2.5}},
+    move:{enable:true,speed:.4,direction:"none",random:true,outModes:"out"},
+    twinkle:{particles:{enable:true,frequency:.05,opacity:1}}
+  }
+}).then(function(){
+  gsap.to('#card',{opacity:1,y:0,duration:1.4,ease:'power3.out',from:{opacity:0,y:40},delay:.8});
+});
+</script>
+</body>
+</html>

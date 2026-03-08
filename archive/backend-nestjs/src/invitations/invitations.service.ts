@@ -6,41 +6,8 @@ import { EventStatus } from '@prisma/client';
 export class InvitationsService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Get invitation metadata by slug (public access)
-   * Checks if event is active and not expired
-   */
   async getInvitationMeta(slug: string) {
-    const event = await this.prisma.event.findUnique({
-      where: { slug },
-      include: {
-        plan: true,
-        template: true,
-      },
-    });
-
-    if (!event) {
-      throw new NotFoundException('Invitation not found');
-    }
-
-    // Check if event is active
-    if (event.status !== EventStatus.ACTIVE) {
-      throw new BadRequestException('This invitation is not active');
-    }
-
-    // Check if expired
-    const now = new Date();
-    if (event.expiresAt && now > event.expiresAt) {
-      // Auto-update status to expired
-      await this.prisma.event.update({
-        where: { id: event.id },
-        data: { status: EventStatus.EXPIRED },
-      });
-
-      throw new BadRequestException('This invitation has expired');
-    }
-
-    // Return limited metadata (don't expose sensitive info)
+    const event = await this.findActiveEvent(slug);
     return {
       slug: event.slug,
       status: event.status,
@@ -50,149 +17,99 @@ export class InvitationsService {
     };
   }
 
-  /**
-   * Register a guest and return full invitation details
-   * Enforces guest limits per plan
-   */
   async registerGuest(
     slug: string,
     guestName: string,
     isTest: boolean = false,
     ip?: string,
-    userAgent?: string
+    userAgent?: string,
   ) {
-    // Get event with plan details
-    const event = await this.prisma.event.findUnique({
-      where: { slug },
-      include: {
-        plan: true,
-      },
-    });
-
-    if (!event) {
-      throw new NotFoundException('Invitation not found');
-    }
-
-    // Check if event is active
-    if (event.status !== EventStatus.ACTIVE) {
-      throw new BadRequestException('This invitation is not active');
-    }
-
-    // Check if expired
-    const now = new Date();
-    if (event.expiresAt && now > event.expiresAt) {
-      await this.prisma.event.update({
-        where: { id: event.id },
-        data: { status: EventStatus.EXPIRED },
+    // Atomic check-and-insert to prevent race conditions on guest limits
+    return this.prisma.$transaction(async (tx) => {
+      const event = await tx.event.findUnique({
+        where: { slug },
+        include: { plan: true, template: true },
       });
 
-      throw new BadRequestException('This invitation has expired');
-    }
+      if (!event) throw new NotFoundException('Invitation not found');
+      if (event.status !== EventStatus.ACTIVE) throw new BadRequestException('This invitation is not active');
 
-    // Check guest limits
-    const regularGuestsCount = await this.prisma.guest.count({
-      where: {
-        eventId: event.id,
-        isTest: false,
-      },
-    });
-
-    const testGuestsCount = await this.prisma.guest.count({
-      where: {
-        eventId: event.id,
-        isTest: true,
-      },
-    });
-
-    // Enforce limits based on guest type
-    if (isTest) {
-      if (testGuestsCount >= event.plan.maxTestGuests) {
-        throw new BadRequestException(
-          `Test guest limit reached (${event.plan.maxTestGuests} maximum)`
-        );
+      if (event.expiresAt && new Date() > event.expiresAt) {
+        await tx.event.update({ where: { id: event.id }, data: { status: EventStatus.EXPIRED } });
+        throw new BadRequestException('This invitation has expired');
       }
-    } else {
-      if (regularGuestsCount >= event.plan.maxRegularGuests) {
-        throw new BadRequestException(
-          `Guest limit reached (${event.plan.maxRegularGuests} maximum)`
-        );
+
+      const guestCount = await tx.guest.count({ where: { eventId: event.id, isTest } });
+      const limit = isTest ? event.plan.maxTestGuests : event.plan.maxRegularGuests;
+      const limitLabel = isTest ? 'Test guest' : 'Guest';
+
+      if (guestCount >= limit) {
+        throw new BadRequestException(`${limitLabel} limit reached (${limit} maximum)`);
       }
-    }
 
-    // Create guest record
-    const guest = await this.prisma.guest.create({
-      data: {
-        eventId: event.id,
-        guestName,
-        isTest,
-        ip,
-        userAgent,
-      },
+      const guest = await tx.guest.create({
+        data: { eventId: event.id, guestName, isTest, ip, userAgent },
+      });
+
+      return {
+        guest: { id: guest.id, name: guest.guestName },
+        event: {
+          brideName: event.brideName,
+          groomName: event.groomName,
+          weddingDate: event.weddingDate,
+          startTime: event.startTime,
+          timezone: event.timezone,
+          venueName: event.venueName,
+          address: event.address,
+          city: event.city,
+          country: event.country,
+          lat: event.lat ? Number(event.lat) : null,
+          lng: event.lng ? Number(event.lng) : null,
+          message: event.message,
+        },
+      };
     });
+  }
 
-    // Return full invitation details for the animation
+  async getRemainingSlots(slug: string) {
+    const event = await this.findActiveEvent(slug);
+
+    const [regularCount, testCount] = await Promise.all([
+      this.prisma.guest.count({ where: { eventId: event.id, isTest: false } }),
+      this.prisma.guest.count({ where: { eventId: event.id, isTest: true } }),
+    ]);
+
     return {
-      guest: {
-        id: guest.id,
-        name: guest.guestName,
+      regular: {
+        used: regularCount,
+        max: event.plan.maxRegularGuests,
+        remaining: event.plan.maxRegularGuests - regularCount,
       },
-      event: {
-        brideName: event.brideName,
-        groomName: event.groomName,
-        weddingDate: event.weddingDate,
-        startTime: event.startTime,
-        timezone: event.timezone,
-        venueName: event.venueName,
-        address: event.address,
-        city: event.city,
-        country: event.country,
-        lat: event.lat ? Number(event.lat) : null,
-        lng: event.lng ? Number(event.lng) : null,
-        message: event.message,
+      test: {
+        used: testCount,
+        max: event.plan.maxTestGuests,
+        remaining: event.plan.maxTestGuests - testCount,
       },
     };
   }
 
-  /**
-   * Check remaining guest slots for an invitation
-   */
-  async getRemainingSlots(slug: string) {
+  private async findActiveEvent(slug: string) {
     const event = await this.prisma.event.findUnique({
       where: { slug },
-      include: {
-        plan: true,
-      },
+      include: { plan: true, template: true },
     });
 
-    if (!event) {
-      throw new NotFoundException('Invitation not found');
+    if (!event) throw new NotFoundException('Invitation not found');
+    if (event.status !== EventStatus.ACTIVE) throw new BadRequestException('This invitation is not active');
+
+    if (event.expiresAt && new Date() > event.expiresAt) {
+      await this.prisma.event.update({
+        where: { id: event.id },
+        data: { status: EventStatus.EXPIRED },
+      });
+      throw new BadRequestException('This invitation has expired');
     }
 
-    const regularGuestsCount = await this.prisma.guest.count({
-      where: {
-        eventId: event.id,
-        isTest: false,
-      },
-    });
-
-    const testGuestsCount = await this.prisma.guest.count({
-      where: {
-        eventId: event.id,
-        isTest: true,
-      },
-    });
-
-    return {
-      regular: {
-        used: regularGuestsCount,
-        max: event.plan.maxRegularGuests,
-        remaining: event.plan.maxRegularGuests - regularGuestsCount,
-      },
-      test: {
-        used: testGuestsCount,
-        max: event.plan.maxTestGuests,
-        remaining: event.plan.maxTestGuests - testGuestsCount,
-      },
-    };
+    return event;
   }
 }

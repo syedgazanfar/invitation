@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { eventsAPI } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 import { Event } from '@/types';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -13,6 +15,17 @@ export default function DashboardPage() {
   useEffect(() => {
     loadEvents();
   }, []);
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!confirm('Are you sure you want to delete this event? This cannot be undone.')) return;
+    try {
+      await eventsAPI.delete(id);
+      setEvents((prev) => prev.filter((ev) => ev.id !== id));
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to delete event');
+    }
+  };
 
   const loadEvents = async () => {
     try {
@@ -136,12 +149,20 @@ export default function DashboardPage() {
                   View Details
                 </Link>
                 {event.status === 'DRAFT' && (
-                  <Link
-                    href={`/dashboard/events/${event.id}/edit`}
-                    className="btn-secondary text-sm"
-                  >
-                    Edit
-                  </Link>
+                  <>
+                    <Link
+                      href={`/dashboard/events/${event.id}/edit`}
+                      className="btn-secondary text-sm"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      onClick={(e) => handleDelete(event.id, e)}
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </>
                 )}
               </div>
             </div>

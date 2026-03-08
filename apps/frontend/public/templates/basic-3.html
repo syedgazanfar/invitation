@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amelia & James — Wedding Invitation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --pri:#F0F5FA;--sec:#8BAFD6;--acc:#2A5C96;
+      --txt:#0E2244;--hf:'Playfair Display',Georgia,serif;
+      --bf:'Lato',system-ui,sans-serif;
+    }
+    body{background:var(--pri);color:var(--txt);font-family:var(--bf);min-height:100vh;overflow-x:hidden}
+    .wrap{max-width:660px;margin:0 auto;padding:72px 32px;text-align:center}
+
+    /* --- animated sections --- */
+    .anim{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s ease}
+    .anim.show{opacity:1;transform:translateY(0)}
+
+    .eyebrow{font-size:.72rem;letter-spacing:.35em;text-transform:uppercase;color:var(--acc);margin-bottom:28px}
+    .names{font-family:var(--hf);font-size:clamp(2.6rem,8vw,4.8rem);font-weight:700;line-height:1.05;color:var(--txt)}
+    .names .amp{display:block;font-size:.44em;font-style:italic;font-weight:400;color:var(--acc);margin:6px 0}
+
+    .rule{display:flex;align-items:center;gap:14px;margin:36px auto;max-width:280px}
+    .rule-line{flex:1;height:1px;background:var(--sec)}
+    .rule-gem{width:7px;height:7px;background:var(--acc);transform:rotate(45deg);flex-shrink:0}
+
+    .sub{font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin-bottom:44px}
+    .dear{font-family:var(--hf);font-size:1.15rem;font-style:italic;color:var(--acc);margin-bottom:28px}
+
+    .card{background:#fff;border-top:3px solid var(--acc);padding:44px 36px;box-shadow:0 6px 48px rgba(0,0,0,.07);border-radius:2px;text-align:left}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:28px}
+    .row.full{grid-template-columns:1fr}
+    .lbl{font-size:.67rem;letter-spacing:.28em;text-transform:uppercase;color:var(--acc);font-weight:600;margin-bottom:5px}
+    .val{font-family:var(--hf);font-size:1.18rem;color:var(--txt);line-height:1.35}
+
+    .msg{background:var(--pri);border:1px solid var(--sec);padding:28px 32px;margin-top:32px;font-family:var(--hf);font-style:italic;font-size:1.05rem;line-height:1.75;border-radius:2px;text-align:center}
+
+    @media(max-width:480px){.row{grid-template-columns:1fr}.card{padding:28px 20px}.wrap{padding:48px 20px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow anim">You Are Cordially Invited</p>
+
+  <div class="names anim">
+    Amelia<span class="amp">&amp;</span>James
+  </div>
+
+  <div class="rule anim">
+    <div class="rule-line"></div><div class="rule-gem"></div><div class="rule-line"></div>
+  </div>
+
+  <p class="sub anim">request the honour of your presence</p>
+  <p class="dear anim">Dear Distinguished Guest,</p>
+
+  <div class="card anim">
+    <div class="row">
+      <div>
+        <div class="lbl">Date</div>
+        <div class="val">Saturday, June 14, 2026</div>
+      </div>
+      <div>
+        <div class="lbl">Time</div>
+        <div class="val">4:00 PM</div>
+      </div>
+    </div>
+    <div class="row full">
+      <div>
+        <div class="lbl">Venue</div>
+        <div class="val">The Grand Pavilion</div>
+      </div>
+    </div>
+    <div class="row full">
+      <div>
+        <div class="lbl">Location</div>
+        <div class="val">123 Garden Lane, London, United Kingdom</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="msg anim">"Your presence is the greatest gift we could ask for. We cannot wait to celebrate with you."</div>
+</div>
+
+<script>
+(function(){
+  var els=document.querySelectorAll('.anim');
+  els.forEach(function(el,i){
+    el.style.transitionDelay=(i*0.13)+'s';
+    setTimeout(function(){el.classList.add('show')},60);
+  });
+})();
+</script>
+</body>
+</html>
