@@ -42,6 +42,9 @@
       "@utils/*": [
         "utils/*"
       ],
+      "@/types": [
+        "lib/types.ts"
+      ],
       "@types/*": [
         "types/*"
       ]
@@ -55,9 +58,21 @@
   },
   "include": [
     "src",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "C:\\Temp\\wedding-frontend-next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "src/pages",
+    "src/components",
+    "src/hooks",
+    "src/services",
+    "src/config",
+    "src/types",
+    "src/utils",
+    "src/App.tsx",
+    "src/index.tsx",
+    "src/theme.ts",
+    "src/setupTests.ts"
   ]
 }
