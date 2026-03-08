@@ -111,7 +111,7 @@ export const eventsAPI = {
   update: (id: string, data: any) =>
     api.put(`/events/${id}`, data),
 
-  processPayment: (id: string, data: { countryCode: string; simulateFailure?: boolean }) =>
+  processPayment: (id: string, data: { countryCode: string; paymentMethod?: string }) =>
     api.post(`/events/${id}/payment`, data),
 
   activate: (id: string) =>

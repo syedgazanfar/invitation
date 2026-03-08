@@ -100,7 +100,6 @@ export default function NewEventPage() {
       // Step 2: Process payment (stubbed)
       const paymentResponse = await eventsAPI.processPayment(eventId, {
         countryCode: user?.preferredCountry || 'US',
-        simulateFailure: false,
       });
 
       if (!paymentResponse.data.success) {

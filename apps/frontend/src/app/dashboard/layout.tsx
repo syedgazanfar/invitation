@@ -59,12 +59,14 @@ export default function DashboardLayout({
                 >
                   Profile
                 </Link>
-                <Link
-                  href="/admin/dashboard"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Admin
-                </Link>
+                {user?.isAdmin && (
+                  <Link
+                    href="/admin/dashboard"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Admin
+                  </Link>
+                )}
               </div>
             </div>
             <div className="flex items-center space-x-4">

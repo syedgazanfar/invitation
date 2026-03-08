@@ -6,6 +6,7 @@ interface User {
   email: string;
   preferredCountry: string;
   preferredCurrency: string;
+  isAdmin?: boolean;
 }
 
 interface AuthState {
