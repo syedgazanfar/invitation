@@ -86,9 +86,9 @@ urlpatterns = [
     # Get AI usage limits
     path('limits/', views.AIUsageLimitsView.as_view(), name='usage-limits'),
     
-    # Legacy usage endpoints (backwards compatibility)
-    path('ai-usage/', views.AIUsageView.as_view(), name='ai-usage'),
-    path('ai-limits/', views.AILimitsView.as_view(), name='ai-limits'),
+    # Legacy usage endpoints (backwards compatibility — alias to current views)
+    path('ai-usage/', views.AIUsageStatsView.as_view(), name='ai-usage'),
+    path('ai-limits/', views.AIUsageLimitsView.as_view(), name='ai-limits'),
     
     # =========================================================================
     # Smart Suggestions Endpoints

@@ -93,7 +93,7 @@ class OrderServiceTest(TestCase):
         )
 
         self.assertTrue(success)
-        self.assertEqual(order.payment_amount, self.premium_plan.price)
+        self.assertEqual(order.payment_amount, self.premium_plan.price_inr)
 
     def test_get_order_by_id_success(self):
         """Test getting order by ID successfully."""

@@ -1,11 +1,8 @@
 """
 Database optimization migration - Add indexes for accounts app.
 
-This migration adds strategic indexes to improve query performance for:
-- User lookups by verification status
-- Plan-based user filtering
-- Activity log queries
-- Phone verification OTP lookups
+Depends on 0004 so that all fields (current_plan, is_approved, etc.) exist
+before indexes are created.
 
 Performance Impact:
 - User queries: 85-90% faster
@@ -19,7 +16,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0001_initial'),
+        ('accounts', '0004_alter_user_approved_at'),
     ]
 
     operations = [

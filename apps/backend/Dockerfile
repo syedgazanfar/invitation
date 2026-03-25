@@ -10,10 +10,17 @@ ENV PYTHONPATH=/app/src
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+# libgl1 + libglib2.0-0: required by opencv-python-headless
+# libgomp1: required by scikit-learn
+# ca-certificates: required by Google Cloud Vision API
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     postgresql-client \
     libpq-dev \
+    libgl1 \
+    libglib2.0-0 \
+    libgomp1 \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -25,6 +32,11 @@ COPY . /app/
 
 # Create directories for media and static files
 RUN mkdir -p /app/media /app/static /app/logs
+
+# Run as non-root user for security
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+RUN chown -R appuser:appgroup /app
+USER appuser
 
 # Expose port
 EXPOSE 8000

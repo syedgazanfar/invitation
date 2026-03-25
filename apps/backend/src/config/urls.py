@@ -44,6 +44,9 @@ urlpatterns = [
     
     # Public invitation endpoint (no version prefix)
     path('api/invite/', include('apps.invitations.public_urls')),
+
+    # Health checks (used by load balancers, uptime monitors)
+    path('health/', include('health_check.urls')),
 ]
 
 # Serve media files in development

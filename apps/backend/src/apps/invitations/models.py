@@ -189,24 +189,12 @@ class Order(models.Model):
     
     @property
     def can_create_invitation(self):
-        """Check if user can create more invitations"""
-        return self.remaining_links > 0 and self.status == 'APPROVED'
-        if test > 0:
-            self.granted_test_links += test
-        
-        if admin_user:
-            self.admin_notes += f"\n[{timezone.now()}] Granted {regular} regular and {test} test links by {admin_user.username}"
-        
-        self.save()
-    
+        """Check if user can create more invitations (must be approved and have remaining links)"""
+        return self.remaining_links > 0 and self.status == OrderStatus.APPROVED
+
     @property
     def is_approved(self):
         return self.status == OrderStatus.APPROVED
-    
-    @property
-    def can_create_invitation(self):
-        """Check if user can create invitation"""
-        return self.status in [OrderStatus.APPROVED, OrderStatus.PENDING_APPROVAL]
 
 
 class Invitation(models.Model):

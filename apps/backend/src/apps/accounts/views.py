@@ -408,8 +408,8 @@ class MyPlanView(generics.GenericAPIView):
             plan_data = {
                 'code': latest_order.plan.code,
                 'name': latest_order.plan.name,
-                'price': latest_order.plan.price,
-                'link_limit': latest_order.plan.link_limit,
+                'price': latest_order.plan.price_inr,
+                'link_limit': latest_order.plan.regular_links,
                 'test_links': latest_order.plan.test_links,
             }
         else:
@@ -484,7 +484,7 @@ class RequestPlanChangeView(generics.GenericAPIView):
                 'requested_plan': {
                     'code': new_plan.code,
                     'name': new_plan.name,
-                    'price': new_plan.price
+                    'price': new_plan.price_inr
                 },
                 'status': 'PENDING_ADMIN_APPROVAL'
             }

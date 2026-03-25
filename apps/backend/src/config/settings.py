@@ -37,6 +37,12 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'django_celery_beat',
     'channels',  # Django Channels for WebSockets
+    # Health checks
+    'health_check',
+    'health_check.db',
+    'health_check.cache',      # covers Redis since cache backend is django-redis
+    'health_check.storage',
+    'health_check.contrib.celery',
 ]
 
 LOCAL_APPS = [
@@ -201,7 +207,7 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Celery Settings
+# Celery Settings (DB 0)
 CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
@@ -210,11 +216,18 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
-# Redis Cache
+# Redis Cache (django-redis — connection pooling, key prefix, socket keepalive)
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': os.getenv('REDIS_URL', 'redis://localhost:6379/1'),
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.getenv('REDIS_CACHE_URL', 'redis://localhost:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
+            'CONNECTION_POOL_KWARGS': {'max_connections': 50},
+        },
+        'KEY_PREFIX': 'invitation',
     }
 }
 
@@ -358,11 +371,6 @@ AI_CACHE_TTL = {
     'message_generation': 0,  # No cache - always fresh
     'hashtag_generation': 0,  # Infinite - deterministic
 }
-OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4')
-OPENAI_FALLBACK_MODEL = os.getenv('OPENAI_FALLBACK_MODEL', 'gpt-3.5-turbo')
-OPENAI_MAX_TOKENS = 500
-OPENAI_TEMPERATURE = 0.8
-
 # Development-specific AI settings
 if DEBUG:
     # Enable mock mode for development if not explicitly set
@@ -374,3 +382,21 @@ if DEBUG:
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'ai-cache',
     }
+
+# =============================================================================
+# SENTRY — Error tracking & performance monitoring
+# =============================================================================
+SENTRY_DSN = os.getenv('SENTRY_DSN', '')
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
+        traces_sample_rate=0.2,   # 20% of transactions for performance monitoring
+        send_default_pii=False,
+        environment='development' if DEBUG else 'production',
+    )
