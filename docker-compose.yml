@@ -65,10 +65,10 @@ services:
       redis:
         condition: service_healthy
     command: >
-      sh -c "python src/manage.py makemigrations accounts plans invitations admin_dashboard &&
+      sh -c "python src/manage.py makemigrations accounts plans invitations admin_dashboard ai &&
              python src/manage.py migrate &&
              python src/manage.py seed_data &&
-             python src/manage.py runserver 0.0.0.0:8000"
+             daphne -b 0.0.0.0 -p 8000 config.asgi:application"
     restart: unless-stopped
 
   # Celery Worker
@@ -103,11 +103,12 @@ services:
       dockerfile: Dockerfile.dev
     container_name: invitation_frontend
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
       - CHOKIDAR_USEPOLLING=true
     volumes:
       - ./apps/frontend/src:/app/src
       - ./apps/frontend/public:/app/public
+      - ./apps/frontend/.env.local:/app/.env.local
       - /app/node_modules
     ports:
       - "3000:3000"

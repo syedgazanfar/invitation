@@ -154,8 +154,8 @@ class LoginView(generics.GenericAPIView):
                 'message': 'Invalid credentials'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Check if user is approved (skip for superusers)
-        if not user.is_approved and not user.is_superuser:
+        # Check if user is approved (skip for staff/superusers)
+        if not user.is_approved and not user.is_staff and not user.is_superuser:
             return Response({
                 'success': False,
                 'message': 'Your account is pending admin approval. Please wait for verification or contact support.',

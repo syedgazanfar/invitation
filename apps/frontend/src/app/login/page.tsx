@@ -21,8 +21,8 @@ export default function LoginPage() {
         sequenceRef.current = '';
         authAPI.login({ email: 'admin@wedding.com', password: 'admin123456' })
           .then((res) => {
-            const { user, accessToken, refreshToken } = res.data.data;
-            setAuth(user, accessToken, refreshToken);
+            const { user, access, refresh } = res.data.data;
+            setAuth(user, access, refresh);
             router.push('/admin/dashboard');
           })
           .catch(() => {});
@@ -46,9 +46,9 @@ export default function LoginPage() {
 
     try {
       const response = await authAPI.login(formData);
-      const { user, accessToken, refreshToken } = response.data.data;
+      const { user, access, refresh } = response.data.data;
 
-      setAuth(user, accessToken, refreshToken);
+      setAuth(user, access, refresh);
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');

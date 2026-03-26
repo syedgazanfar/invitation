@@ -35,7 +35,9 @@ urlpatterns = [
     # Admin
     path('admin/', admin.site.urls),
     
-    # API v1
+    # API v1 — authentication (login, logout, token refresh)
+    path('api/v1/auth/', include('apps.authentication.urls')),
+    # API v1 — accounts (register, profile, OTP, plan management)
     path('api/v1/auth/', include('apps.accounts.urls')),
     path('api/v1/plans/', include('apps.plans.urls')),
     path('api/v1/invitations/', include('apps.invitations.urls')),

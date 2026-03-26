@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9301/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -37,16 +37,15 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
-          const response = await axios.post(`${API_URL}/auth/refresh`, {
-            refreshToken,
+          const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
+            refresh: refreshToken,
           });
 
-          const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+          const access = response.data.data?.access || response.data.access;
 
-          localStorage.setItem('accessToken', accessToken);
-          localStorage.setItem('refreshToken', newRefreshToken);
+          localStorage.setItem('accessToken', access);
 
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          originalRequest.headers.Authorization = `Bearer ${access}`;
           return api(originalRequest);
         }
       } catch (refreshError) {
@@ -67,13 +66,13 @@ export const authAPI = {
     api.post('/auth/signup', data),
 
   login: (data: { email: string; password: string }) =>
-    api.post('/auth/login', data),
+    api.post('/auth/login/', { identifier: data.email, password: data.password }),
 
-  logout: () =>
-    api.post('/auth/logout'),
+  logout: (refresh: string) =>
+    api.post('/auth/logout/', { refresh }),
 
-  refresh: (refreshToken: string) =>
-    api.post('/auth/refresh', { refreshToken }),
+  refresh: (refresh: string) =>
+    api.post('/auth/token/refresh/', { refresh }),
 };
 
 // User API
