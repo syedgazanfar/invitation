@@ -38,7 +38,7 @@ export default function EditEventPage() {
   const loadEvent = async () => {
     try {
       const response = await eventsAPI.getOne(eventId);
-      const ev: Event = response.data.data;
+      const ev: Event = response.data;
 
       setEventStatus(ev.status);
 

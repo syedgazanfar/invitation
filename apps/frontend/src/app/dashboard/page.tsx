@@ -30,7 +30,8 @@ export default function DashboardPage() {
   const loadEvents = async () => {
     try {
       const response = await eventsAPI.getAll();
-      setEvents(response.data.data);
+      const data = response.data;
+      setEvents(data.results ?? data.data ?? []);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load events');
     } finally {

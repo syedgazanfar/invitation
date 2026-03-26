@@ -45,7 +45,8 @@ export default function NewEventPage() {
   const loadPlans = async () => {
     try {
       const response = await plansAPI.getAll();
-      setPlans(response.data.data);
+      const data = response.data;
+      setPlans(data.results ?? data.data ?? []);
     } catch (err) {
       console.error('Failed to load plans:', err);
     }
@@ -54,7 +55,8 @@ export default function NewEventPage() {
   const loadTemplates = async (planCode: PlanCode) => {
     try {
       const response = await templatesAPI.getByPlan(planCode);
-      setTemplates(response.data.data);
+      const data = response.data;
+      setTemplates(data.results ?? data.data ?? []);
     } catch (err) {
       console.error('Failed to load templates:', err);
     }
