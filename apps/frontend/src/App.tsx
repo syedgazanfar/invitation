@@ -24,28 +24,28 @@ import AdminRoute from './components/common/AdminRoute';
 import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Public Pages
-import Home from './pages/Home/Home';
-import Login from './pages/Auth/Login';
-import Register from './pages/Auth/Register';
-import ForgotPassword from './pages/Auth/ForgotPassword';
-import Plans from './pages/Plans/Plans';
-import Templates from './pages/Plans/Templates';
+import Home from './legacy-pages/Home/Home';
+import Login from './legacy-pages/Auth/Login';
+import Register from './legacy-pages/Auth/Register';
+import ForgotPassword from './legacy-pages/Auth/ForgotPassword';
+import Plans from './legacy-pages/Plans/Plans';
+import Templates from './legacy-pages/Plans/Templates';
 
 // Protected Pages
-import Dashboard from './pages/Dashboard/Dashboard';
-import Orders from './pages/Dashboard/Orders';
-import MyInvitations from './pages/Dashboard/MyInvitations';
-import Profile from './pages/Dashboard/Profile';
-import Guests from './pages/Dashboard/Guests';
-import InvitationBuilder from './pages/InvitationBuilder/Builder';
+import Dashboard from './legacy-pages/Dashboard/Dashboard';
+import Orders from './legacy-pages/Dashboard/Orders';
+import MyInvitations from './legacy-pages/Dashboard/MyInvitations';
+import Profile from './legacy-pages/Dashboard/Profile';
+import Guests from './legacy-pages/Dashboard/Guests';
+import InvitationBuilder from './legacy-pages/InvitationBuilder/Builder';
 
 // Public Invitation Page
-import InvitationPage from './pages/Invite/InvitationPage';
+import InvitationPage from './legacy-pages/Invite/InvitationPage';
 
 // Admin Pages
-import AdminDashboard from './pages/Admin/Dashboard';
-import AdminOrders from './pages/Admin/Orders';
-import AdminUsers from './pages/Admin/Users';
+import AdminDashboard from './legacy-pages/Admin/Dashboard';
+import AdminOrders from './legacy-pages/Admin/Orders';
+import AdminUsers from './legacy-pages/Admin/Users';
 import RealTimeDashboard from './components/admin/RealTimeDashboard';
 
 /**
