@@ -12,7 +12,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, clearAuth, user } = useAuthStore();
+  const { isAuthenticated, clearAuth, user, refreshToken } = useAuthStore();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -22,9 +22,9 @@ export default function DashboardLayout({
 
   const handleLogout = async () => {
     try {
-      await authAPI.logout();
-    } catch (err) {
-      console.error('Logout error:', err);
+      if (refreshToken) await authAPI.logout(refreshToken);
+    } catch {
+      // Token may already be expired/blacklisted; log out locally regardless.
     } finally {
       clearAuth();
       router.push('/');
@@ -59,7 +59,7 @@ export default function DashboardLayout({
                 >
                   Profile
                 </Link>
-                {user?.isAdmin && (
+                {user?.is_staff && (
                   <Link
                     href="/admin/dashboard"
                     className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
@@ -71,7 +71,7 @@ export default function DashboardLayout({
             </div>
             <div className="flex items-center space-x-4">
               {user && (
-                <span className="text-sm text-gray-600">{user.email}</span>
+                <span className="text-sm text-gray-600">{user.full_name || user.username}</span>
               )}
               <button
                 onClick={handleLogout}

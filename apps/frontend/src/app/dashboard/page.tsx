@@ -2,172 +2,118 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { eventsAPI } from '@/lib/api';
-import { useRouter } from 'next/navigation';
-import { Event } from '@/types';
+import { eventsAPI, apiErrorMessage } from '@/lib/api';
+import type { InvitationListItem, Paginated } from '@/lib/types';
+
+function statusOf(inv: InvitationListItem): { label: string; className: string } {
+  if (inv.is_expired) return { label: 'Expired', className: 'bg-red-200 text-red-800' };
+  if (inv.is_active) return { label: 'Active', className: 'bg-green-200 text-green-800' };
+  const label = (inv.order_status || 'Draft').replace(/_/g, ' ').toLowerCase();
+  return { label: label.charAt(0).toUpperCase() + label.slice(1), className: 'bg-yellow-100 text-yellow-800' };
+}
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const [events, setEvents] = useState<Event[]>([]);
+  const [invitations, setInvitations] = useState<InvitationListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [welcome, setWelcome] = useState(false);
 
   useEffect(() => {
-    loadEvents();
+    // Read the query string directly (useSearchParams would need a Suspense boundary).
+    setWelcome(new URLSearchParams(window.location.search).get('welcome') === '1');
+
+    eventsAPI
+      .getAll()
+      .then((res) => setInvitations((res.data as Paginated<InvitationListItem>).results ?? []))
+      .catch((err) => setError(apiErrorMessage(err, 'Failed to load invitations')))
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!confirm('Are you sure you want to delete this event? This cannot be undone.')) return;
-    try {
-      await eventsAPI.delete(id);
-      setEvents((prev) => prev.filter((ev) => ev.id !== id));
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete event');
-    }
-  };
-
-  const loadEvents = async () => {
-    try {
-      const response = await eventsAPI.getAll();
-      const data = response.data;
-      setEvents(data.results ?? data.data ?? []);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load events');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      DRAFT: 'bg-gray-200 text-gray-800',
-      ACTIVE: 'bg-green-200 text-green-800',
-      EXPIRED: 'bg-red-200 text-red-800',
-    };
-    return styles[status as keyof typeof styles] || 'bg-gray-200 text-gray-800';
-  };
-
   if (loading) {
-    return <div className="text-center py-12">Loading events...</div>;
+    return <div className="text-center py-12">Loading invitations...</div>;
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">My Events</h1>
+        <h1 className="text-3xl font-bold text-gray-900">My Invitations</h1>
         <Link href="/dashboard/events/new" className="btn-primary">
-          Create New Event
+          Create Invitation
         </Link>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-          {error}
+      {welcome && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-6">
+          Your account has been created. An admin will review and approve it before your invitation link goes live.
         </div>
       )}
 
-      {events.length === 0 ? (
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">{error}</div>
+      )}
+
+      {invitations.length === 0 ? (
         <div className="card text-center py-12">
-          <p className="text-gray-600 mb-4">You haven't created any events yet.</p>
+          <p className="text-gray-600 mb-4">You haven&apos;t created any invitations yet.</p>
           <Link href="/dashboard/events/new" className="btn-primary">
-            Create Your First Event
+            Create Your First Invitation
           </Link>
         </div>
       ) : (
         <div className="grid gap-6">
-          {events.map((event) => (
-            <div key={event.id} className="card hover:shadow-lg transition-shadow">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {event.brideName} & {event.groomName}
-                  </h3>
-                  <p className="text-gray-600">
-                    {new Date(event.weddingDate).toLocaleDateString()} at {event.startTime}
-                  </p>
-                  <p className="text-gray-500 text-sm">{event.venueName}</p>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(event.status)}`}>
-                  {event.status}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <p className="text-sm text-gray-600">Plan</p>
-                  <p className="font-medium">{event.plan?.name || event.planCode}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Template</p>
-                  <p className="font-medium">{event.template?.name || 'N/A'}</p>
-                </div>
-                {event.guestStats && (
-                  <>
-                    <div>
-                      <p className="text-sm text-gray-600">Guests</p>
-                      <p className="font-medium">
-                        {event.guestStats.regularGuests.current} / {event.guestStats.regularGuests.max}
-                      </p>
+          {invitations.map((inv) => {
+            const status = statusOf(inv);
+            return (
+              <div key={inv.id} className="card hover:shadow-lg transition-shadow">
+                <div className="flex justify-between items-start gap-4 mb-4">
+                  <div className="flex gap-4 items-start min-w-0">
+                    {inv.template_thumbnail && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={inv.template_thumbnail}
+                        alt={inv.template_name}
+                        className="w-16 h-16 rounded object-cover flex-shrink-0"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-1 truncate">{inv.event_title}</h3>
+                      <p className="text-gray-600">{new Date(inv.event_date).toLocaleString()}</p>
+                      <p className="text-gray-500 text-sm">{inv.template_name}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Test Opens</p>
-                      <p className="font-medium">
-                        {event.guestStats.testGuests.current} / {event.guestStats.testGuests.max}
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {event.status === 'ACTIVE' && event.inviteUrl && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-gray-600 mb-2">Invitation URL</p>
-                  <div className="flex items-center justify-between">
-                    <code className="text-sm bg-white px-3 py-2 rounded border flex-1 mr-2 overflow-x-auto">
-                      {event.inviteUrl}
-                    </code>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(event.inviteUrl!)}
-                      className="btn-secondary text-sm whitespace-nowrap"
-                    >
-                      Copy
-                    </button>
                   </div>
-                  {event.expiresAt && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      Expires: {new Date(event.expiresAt).toLocaleString()}
-                    </p>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${status.className}`}>
+                    {status.label}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Guests</p>
+                    <p className="font-medium">{inv.unique_guests}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Views</p>
+                    <p className="font-medium">{inv.total_views}</p>
+                  </div>
+                  {inv.link_expires_at && (
+                    <div>
+                      <p className="text-sm text-gray-600">Link expires</p>
+                      <p className="font-medium">{new Date(inv.link_expires_at).toLocaleDateString()}</p>
+                    </div>
                   )}
                 </div>
-              )}
 
-              <div className="flex gap-2">
-                <Link
-                  href={`/dashboard/events/${event.id}`}
-                  className="btn-primary text-sm"
-                >
-                  View Details
-                </Link>
-                {event.status === 'DRAFT' && (
-                  <>
-                    <Link
-                      href={`/dashboard/events/${event.id}/edit`}
-                      className="btn-secondary text-sm"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={(e) => handleDelete(event.id, e)}
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
+                <div className="flex gap-2">
+                  <Link href={`/dashboard/events/${inv.slug}`} className="btn-primary text-sm">
+                    View Details
+                  </Link>
+                  <Link href={`/dashboard/events/${inv.slug}/edit`} className="btn-secondary text-sm">
+                    Edit
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
