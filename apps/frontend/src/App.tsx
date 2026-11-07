@@ -30,7 +30,6 @@ import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import Plans from './pages/Plans/Plans';
 import Templates from './pages/Plans/Templates';
-import Enquiry from './pages/Enquiry/Enquiry';
 
 // Protected Pages
 import Dashboard from './pages/Dashboard/Dashboard';
@@ -82,8 +81,6 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/plans" element={<Plans />} />
               <Route path="/templates" element={<Templates />} />
-              <Route path="/enquiry" element={<Enquiry />} />
-              <Route path="/contact" element={<Navigate to="/enquiry" replace />} />
               
               {/* Public Invitation Route */}
               <Route path="/invite/:slug" element={<InvitationPage />} />

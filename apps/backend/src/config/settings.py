@@ -210,6 +210,13 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 
 CORS_ALLOW_CREDENTIALS = True
 
+# CSRF / HTTPS behind a reverse proxy (needed for Django admin over https)
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
+if os.getenv('USE_X_FORWARDED_PROTO', 'False').lower() == 'true':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 # Celery Settings (DB 0)
 CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/0')

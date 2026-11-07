@@ -1,0 +1,188 @@
+# Production stack for a single server.
+#
+#   cp .env.production.example .env      # then fill in every value
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Differences from docker-compose.yml (dev):
+#   - Every published port is bound to 127.0.0.1 only. Docker bypasses ufw, so
+#     binding to localhost is what keeps Postgres/Redis/MySQL off the internet.
+#     The host's nginx (see nginx/production.conf) is the only public entry point.
+#   - All passwords/secrets come from .env and are required (no "password" defaults).
+#   - DEBUG is off, no makemigrations at startup (migrations are committed).
+#   - The frontend is a production Next.js build with the public API URL baked in.
+#
+# See DEPLOY.md for the full walkthrough.
+
+x-backend-env: &backend-env
+  SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+  DEBUG: "False"
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS:?set ALLOWED_HOSTS in .env}
+  CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:?set CSRF_TRUSTED_ORIGINS in .env}
+  CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?set CORS_ALLOWED_ORIGINS in .env}
+  FRONTEND_URL: ${FRONTEND_URL:?set FRONTEND_URL in .env}
+  USE_X_FORWARDED_PROTO: "True"
+  DB_NAME: invitation_platform
+  DB_USER: postgres
+  DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+  DB_HOST: db
+  DB_PORT: "5432"
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  REDIS_URL: redis://redis:6379/0
+  REDIS_CACHE_URL: redis://redis:6379/1
+  FINGERPRINT_SALT: ${FINGERPRINT_SALT:?set FINGERPRINT_SALT in .env}
+  RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+  RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+  RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
+  MSG91_AUTH_KEY: ${MSG91_AUTH_KEY:-}
+  MSG91_TEMPLATE_ID: ${MSG91_TEMPLATE_ID:-}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  AI_MOCK_MODE: ${AI_MOCK_MODE:-True}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  WA_AKG_BASE_URL: http://wa-gateway:3000/api
+  WA_AKG_API_KEY: ${WA_AKG_API_KEY:-}
+  WA_AKG_SESSION_ID: ${WA_AKG_SESSION_ID:-}
+  WA_AKG_ADMIN_NUMBERS: ${WA_AKG_ADMIN_NUMBERS:-}
+  WA_AKG_SEND_CUSTOMER_CONFIRMATION: ${WA_AKG_SEND_CUSTOMER_CONFIRMATION:-True}
+  ENQUIRY_BRAND_NAME: ${ENQUIRY_BRAND_NAME:-Our team}
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: invitation_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    environment: *backend-env
+    volumes:
+      - media_files:/app/media
+      - static_files:/app/static
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "python src/manage.py migrate --noinput &&
+             python src/manage.py collectstatic --noinput &&
+             python src/manage.py seed_data &&
+             daphne -b 0.0.0.0 -p 8000 config.asgi:application"
+    restart: unless-stopped
+
+  celery:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    environment: *backend-env
+    volumes:
+      - media_files:/app/media
+    depends_on:
+      - db
+      - redis
+    command: sh -c "cd /app/src && celery -A config worker -l info"
+    restart: unless-stopped
+
+  # Serves user uploads (/media/). Django doesn't serve media with DEBUG off;
+  # /static/ is served by the backend itself via WhiteNoise.
+  media:
+    image: nginx:1.27-alpine
+    volumes:
+      - media_files:/usr/share/nginx/html/media:ro
+    ports:
+      - "127.0.0.1:8081:80"
+    depends_on:
+      - backend   # backend creates the volume first, so it stays writable by the app user
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:?set PUBLIC_API_URL in .env}
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # WA-AKG WhatsApp gateway (git submodule apps/wa-gateway)
+  wa-gateway-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${WA_MYSQL_ROOT_PASSWORD:?set WA_MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: wa_akg
+    volumes:
+      - wa_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  wa-gateway:
+    build:
+      context: ./apps/wa-gateway
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: mysql://root:${WA_MYSQL_ROOT_PASSWORD}@wa-gateway-db:3306/wa_akg
+      AUTH_SECRET: ${WA_AUTH_SECRET:?set WA_AUTH_SECRET in .env}
+      BASE_URL: ${WA_BASE_URL:?set WA_BASE_URL in .env}
+      NEXTAUTH_URL: ${WA_BASE_URL}
+      NEXT_PUBLIC_APP_URL: ${WA_BASE_URL}
+      NEXT_PUBLIC_API_URL: ${WA_BASE_URL}/api
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      BAILEYS_LOG_LEVEL: error
+      NEXT_PUBLIC_SWAGGER_ENABLED: "false"
+      TZ: Asia/Kolkata
+      LOCALE: en-IN
+      DEFAULT_LANGUAGE: en
+      ADMIN_EMAIL: ${WA_ADMIN_EMAIL:?set WA_ADMIN_EMAIL in .env}
+      ADMIN_PASSWORD: ${WA_ADMIN_PASSWORD:?set WA_ADMIN_PASSWORD in .env}
+    volumes:
+      - wa_app_data:/app/data
+      - wa_uploads_data:/app/uploads
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      wa-gateway-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_files:
+  static_files:
+  wa_mysql_data:
+  wa_app_data:
+  wa_uploads_data:
