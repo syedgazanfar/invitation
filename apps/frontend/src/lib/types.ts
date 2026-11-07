@@ -302,6 +302,13 @@ export interface RegisterInput {
   full_name?: string;
 }
 
+/** invitations.OrderCreateSerializer: event_type and event_type_name are both required by the model */
+export interface OrderCreateInput {
+  plan_code: string;
+  event_type: string;
+  event_type_name: string;
+}
+
 /** invitations.InvitationCreateSerializer (image/music uploads not supported from the UI yet) */
 export interface InvitationCreateInput {
   order_id: string;

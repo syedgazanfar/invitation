@@ -57,10 +57,8 @@ describe('authenticated endpoints (base /api/v1)', () => {
       'get', '/plans/templates/by-plan/PREMIUM/', undefined],
     ['templatesAPI.getByPlan()', () => templatesAPI.getByPlan(), 'get', '/plans/templates/all', undefined],
     ['eventsAPI.getOrders', () => eventsAPI.getOrders(), 'get', '/invitations/orders/', undefined],
-    ['eventsAPI.createOrder', () => eventsAPI.createOrder({ plan_code: 'BASIC', event_type: 'WEDDING' }),
-      'post', '/invitations/orders/create/', { plan_code: 'BASIC', event_type: 'WEDDING' }],
-    ['eventsAPI.create', () => eventsAPI.create({ order_id: 'o1', template_id: 't1', event_title: 'Asha & Ravi', event_date: '2027-01-10T18:00:00Z', event_venue: 'Hall', event_address: 'Hyd', host_name: 'Ravi' }),
-      'post', '/invitations/create/', { order_id: 'o1', template_id: 't1', event_title: 'Asha & Ravi', event_date: '2027-01-10T18:00:00Z', event_venue: 'Hall', event_address: 'Hyd', host_name: 'Ravi' }],
+    ['eventsAPI.createOrder', () => eventsAPI.createOrder({ plan_code: 'BASIC', event_type: 'WEDDING', event_type_name: 'Wedding' }),
+      'post', '/invitations/orders/create/', { plan_code: 'BASIC', event_type: 'WEDDING', event_type_name: 'Wedding' }],
     ['eventsAPI.update', () => eventsAPI.update('my-wedding', { event_venue: 'New Hall' }),
       'patch', '/invitations/my-wedding/update/', { event_venue: 'New Hall' }],
     ['eventsAPI.getAll', () => eventsAPI.getAll(), 'get', '/invitations/', undefined],
@@ -228,5 +226,20 @@ describe('auth store stays in sync with token refresh', () => {
     await userAPI.getProfile();
 
     expect(useAuthStore.getState().accessToken).toBe('new-tok');
+  });
+});
+
+describe('invitation create uploads the banner as multipart', () => {
+  it('sends FormData untouched (not converted to JSON by the client default header)', async () => {
+    const fd = new FormData();
+    fd.append('event_title', 'Asha & Ravi');
+    fd.append('banner_image', new File(['x'], 'banner.jpg', { type: 'image/jpeg' }));
+
+    await eventsAPI.create(fd);
+
+    const req = lastRequest(mock, 'post');
+    expect(req.url).toBe('/invitations/create/');
+    expect(req.data).toBeInstanceOf(FormData);
+    expect((req.data as FormData).get('banner_image')).toBeInstanceOf(File);
   });
 });

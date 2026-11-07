@@ -1,4 +1,13 @@
-import type { OrderSummary } from './types';
+import type { OrderCreateInput, OrderSummary } from './types';
+
+/**
+ * Body for POST /invitations/orders/create/. Django's Order model requires both
+ * event_type and event_type_name (neither is blank=True). The create page is
+ * wedding-only, so both are fixed.
+ */
+export function orderCreatePayload(planCode: string): OrderCreateInput {
+  return { plan_code: planCode, event_type: 'WEDDING', event_type_name: 'Wedding' };
+}
 
 const PENDING = new Set(['PENDING_PAYMENT', 'PENDING_APPROVAL']);
 

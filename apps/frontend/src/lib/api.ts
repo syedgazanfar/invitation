@@ -8,8 +8,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import type {
   GuestRegisterInput,
-  InvitationCreateInput,
   InvitationUpdateInput,
+  OrderCreateInput,
   RegisterInput,
   UserStatusFilter,
 } from './types';
@@ -128,9 +128,11 @@ export const templatesAPI = {
 
 export const eventsAPI = {
   getOrders: () => api.get('/invitations/orders/'),
-  createOrder: (data: { plan_code: string; event_type?: string; event_type_name?: string }) =>
+  createOrder: (data: OrderCreateInput) =>
     api.post('/invitations/orders/create/', data),
-  create: (data: InvitationCreateInput) => api.post('/invitations/create/', data),
+  /** Multipart: Django requires banner_image. Build the body with invitationFormData(). */
+  create: (data: FormData) =>
+    api.post('/invitations/create/', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   update: (slug: string, data: InvitationUpdateInput) => api.patch(`/invitations/${slug}/update/`, data),
   getAll: () => api.get('/invitations/'),
   getOne: (slug: string) => api.get(`/invitations/${slug}/`),

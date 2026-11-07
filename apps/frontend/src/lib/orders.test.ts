@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pickReusableOrder } from './orders';
+import { orderCreatePayload, pickReusableOrder } from './orders';
 import type { OrderSummary } from './types';
 
 const order = (o: Partial<OrderSummary>): OrderSummary => ({
@@ -41,5 +41,15 @@ describe('pickReusableOrder', () => {
 
   it('returns null when there are no orders', () => {
     expect(pickReusableOrder([])).toBeNull();
+  });
+});
+
+describe('orderCreatePayload', () => {
+  it('sends every field Django OrderCreateSerializer requires (event_type and event_type_name)', () => {
+    expect(orderCreatePayload('PREMIUM')).toEqual({
+      plan_code: 'PREMIUM',
+      event_type: 'WEDDING',
+      event_type_name: 'Wedding',
+    });
   });
 });
