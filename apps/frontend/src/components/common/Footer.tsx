@@ -31,7 +31,7 @@ const Footer: React.FC = () => {
     ],
     support: [
       { label: 'Help Center', path: '/help' },
-      { label: 'Contact Us', path: '/enquiry' },
+      { label: 'Contact Us', path: '/contact' },
       { label: 'FAQ', path: '/faq' },
     ],
     legal: [

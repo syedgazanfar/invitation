@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Payment/SMS:** Razorpay + MSG91
 **Deployment:** Docker + Docker Compose + Nginx
 
-> Note: `package.json` lists Next.js but the frontend is a React SPA with React Router — Next.js is not used.
+> Note: the **active frontend is Next.js 14 (App Router) in `apps/frontend/src/app/`**, styled with Tailwind, using `src/lib/api.ts` and `NEXT_PUBLIC_API_URL`. The older MUI/React Router code (`src/pages`, `src/components`, `src/services`, `App.tsx`, …) is excluded by `next.config.js` (null-loader) and `tsconfig.json`; it is legacy and not served. Add new pages under `src/app/`.
 
 ## Project Structure
 
@@ -70,7 +70,7 @@ Key service files:
 ## Essential Commands
 
 ```bash
-# Start all services
+# Start all services (dev). Production: docker-compose.prod.yml, see DEPLOY.md
 docker-compose up -d
 
 # Run migrations / seed data
@@ -150,7 +150,7 @@ POST /api/v1/enquiries/            # Public enquiry form (throttled, honeypot)
 ```
 
 ### Enquiry Form + WhatsApp (WA-AKG)
-`apps/enquiries/` stores public enquiries (frontend page `/enquiry`) and, via a Celery task, sends WhatsApp messages through the WA-AKG gateway (git submodule `apps/wa-gateway`, compose service `wa-gateway`, dashboard on http://localhost:3001). Configure with `WA_AKG_*` env vars (see `apps/backend/.env.example`). If WA-AKG is unconfigured or down, the enquiry is still saved and the error shows in Django admin, where "Re-send pending WhatsApp notifications" retries it.
+`apps/enquiries/` stores public enquiries (frontend page `src/app/enquiry/page.tsx`, served at `/enquiry`) and, via a Celery task, sends WhatsApp messages through the WA-AKG gateway (git submodule `apps/wa-gateway`, compose service `wa-gateway`, dashboard on http://localhost:3001). Configure with `WA_AKG_*` env vars (see `apps/backend/.env.example`). If WA-AKG is unconfigured or down, the enquiry is still saved and the error shows in Django admin, where "Re-send pending WhatsApp notifications" retries it.
 
 Full reference: `API_ENDPOINTS_DOCUMENTATION.md`
 

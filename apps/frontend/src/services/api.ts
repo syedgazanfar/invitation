@@ -221,27 +221,6 @@ export const publicApi = {
     axios.post<ApiResponse<any>>(`${API_BASE_URL.replace('/v1', '')}/invite/${slug}/rsvp/`, data),
 };
 
-// Enquiry API (public, no auth — uses plain axios so the auth interceptor never redirects)
-export interface EnquiryPayload {
-  name: string;
-  phone: string;
-  email?: string;
-  event_type: string;
-  event_date?: string | null;
-  message?: string;
-  website?: string; // honeypot, must stay empty
-}
-
-export const enquiryApi = {
-  getOptions: () =>
-    axios
-      .get<ApiResponse<{ event_types: { value: string; label: string }[] }>>(`${API_BASE_URL}/enquiries/`)
-      .then(res => res.data),
-
-  submit: (data: EnquiryPayload) =>
-    axios.post<ApiResponse<{ id: string }>>(`${API_BASE_URL}/enquiries/`, data).then(res => res.data),
-};
-
 // Admin API
 export const adminApi = {
   // Dashboard Statistics

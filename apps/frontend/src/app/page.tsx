@@ -10,6 +10,9 @@ export default function Home() {
               Wedding Invitations
             </h1>
             <div className="space-x-4">
+              <Link href="/enquiry" className="text-gray-600 hover:text-primary-600">
+                Enquiry
+              </Link>
               <Link href="/login" className="text-gray-600 hover:text-primary-600">
                 Login
               </Link>
