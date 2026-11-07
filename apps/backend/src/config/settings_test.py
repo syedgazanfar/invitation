@@ -18,7 +18,7 @@ CHANNEL_LAYERS = {
 
 # Disable Celery for testing
 CELERY_TASK_ALWAYS_EAGER = True
-CELERY_TASK_EAGER_PROPAG ATES = True
+CELERY_TASK_EAGER_PROPAGATES = True
 
 # Simplified caching for testing
 CACHES = {
