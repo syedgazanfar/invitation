@@ -6,47 +6,51 @@ import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import { authAPI } from '@/lib/api';
 
+const NAV_LINKS = [
+  { href: '/admin/dashboard', label: 'Dashboard' },
+  { href: '/admin/users', label: 'Users' },
+  { href: '/admin/approvals', label: 'Approvals' },
+];
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, clearAuth, user } = useAuthStore();
+  const { isAuthenticated, clearAuth, user, refreshToken } = useAuthStore();
+  const isStaff = Boolean(user?.is_staff);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthenticated, router]);
+    if (!isAuthenticated) router.push('/login');
+    else if (!isStaff) router.push('/dashboard');
+  }, [isAuthenticated, isStaff, router]);
 
   const handleLogout = async () => {
-    try { await authAPI.logout(); } catch {}
-    clearAuth();
-    router.push('/');
+    try {
+      if (refreshToken) await authAPI.logout(refreshToken);
+    } catch {
+      // Token may already be expired/blacklisted; log out locally regardless.
+    } finally {
+      clearAuth();
+      router.push('/');
+    }
   };
 
-  const navLinks = [
-    { href: '/admin/dashboard', label: 'Dashboard' },
-    { href: '/admin/users', label: 'Users' },
-    { href: '/admin/events', label: 'Events' },
-  ];
+  if (!isAuthenticated || !isStaff) return null;
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
       <aside className="w-56 bg-gray-900 text-white flex flex-col fixed inset-y-0">
         <div className="px-6 py-5 border-b border-gray-700">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Admin Panel</p>
-          <p className="text-white font-bold text-sm truncate">{user?.email}</p>
+          <p className="text-white font-bold text-sm truncate">{user?.full_name || user?.username}</p>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {navLinks.map((link) => (
+          {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                pathname === link.href
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                pathname === link.href ? 'bg-primary-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
               }`}
             >
               {link.label}
@@ -70,10 +74,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="ml-56 flex-1 p-8">
-        {children}
-      </main>
+      <main className="ml-56 flex-1 p-8">{children}</main>
     </div>
   );
 }
