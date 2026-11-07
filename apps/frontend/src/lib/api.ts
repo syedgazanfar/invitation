@@ -13,6 +13,7 @@ import type {
   RegisterInput,
   UserStatusFilter,
 } from './types';
+import { useAuthStore } from '@/store/authStore';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '');
 const PUBLIC_API_URL = API_URL.replace(/\/v1$/, '');
@@ -32,6 +33,9 @@ export const publicApi = axios.create({
 
 type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
+// A 401 from these means bad credentials/token, not an expired session: never refresh.
+const NO_REFRESH = ['/auth/login/', '/auth/register/', '/auth/token/refresh/', '/auth/logout/'];
+
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('accessToken');
@@ -46,7 +50,13 @@ api.interceptors.response.use(
     const original = error.config as RetriableConfig | undefined;
     const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
 
-    if (error.response?.status !== 401 || !original || original._retry || !refreshToken) {
+    if (
+      error.response?.status !== 401 ||
+      !original ||
+      original._retry ||
+      !refreshToken ||
+      NO_REFRESH.includes(original.url ?? '')
+    ) {
       return Promise.reject(error);
     }
     original._retry = true;
@@ -56,11 +66,11 @@ api.interceptors.response.use(
       const access: string | undefined = res.data?.data?.access || res.data?.access;
       if (!access) throw new Error('No access token in refresh response');
       localStorage.setItem('accessToken', access);
+      useAuthStore.setState({ accessToken: access }); // keep the persisted store in sync
       original.headers.Authorization = `Bearer ${access}`;
       return api(original);
     } catch (refreshError) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      useAuthStore.getState().clearAuth(); // clears localStorage keys and the persisted store
       if (typeof window !== 'undefined' && !process.env.VITEST) window.location.href = '/login';
       return Promise.reject(refreshError);
     }
@@ -117,6 +127,7 @@ export const templatesAPI = {
 };
 
 export const eventsAPI = {
+  getOrders: () => api.get('/invitations/orders/'),
   createOrder: (data: { plan_code: string; event_type?: string; event_type_name?: string }) =>
     api.post('/invitations/orders/create/', data),
   create: (data: InvitationCreateInput) => api.post('/invitations/create/', data),

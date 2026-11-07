@@ -210,6 +210,9 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 
 CORS_ALLOW_CREDENTIALS = True
 
+# URL prefix for the Django admin site (must end with '/')
+DJANGO_ADMIN_PATH = os.getenv('DJANGO_ADMIN_PATH', 'admin/').strip('/') + '/'
+
 # CSRF / HTTPS behind a reverse proxy (needed for Django admin over https)
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 if os.getenv('USE_X_FORWARDED_PROTO', 'False').lower() == 'true':

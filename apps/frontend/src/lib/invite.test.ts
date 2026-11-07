@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { inviteViewStateForCheck, inviteViewStateForError } from './invite';
+import { inviteNotice, inviteViewStateForCheck, inviteViewStateForError } from './invite';
 
 describe('inviteViewStateForError', () => {
   it('maps 410 Gone to the expired state', () => {
@@ -33,5 +33,18 @@ describe('inviteViewStateForCheck', () => {
 
   it('shows the form to a new guest when there is room', () => {
     expect(inviteViewStateForCheck({ already_registered: false, can_register: true, remaining_links: 3 })).toBe('form');
+  });
+});
+
+describe('inviteNotice', () => {
+  it('tells guests a 404 link may simply have expired (Django returns 404 once an invitation is marked expired)', () => {
+    const n = inviteNotice('not-found');
+    expect(n.title).toMatch(/not available/i);
+    expect(n.body).toMatch(/expired/i);
+  });
+
+  it('explains expiry and guest limits', () => {
+    expect(inviteNotice('expired').title).toMatch(/expired/i);
+    expect(inviteNotice('limit-reached').title).toMatch(/limit/i);
   });
 });

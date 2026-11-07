@@ -24,7 +24,7 @@ def api_root(request):
             "invite": "/api/invite/",
         },
         "documentation": {
-            "admin": "/admin/",
+            "admin": f"/{settings.DJANGO_ADMIN_PATH}",
         }
     })
 
@@ -33,8 +33,9 @@ urlpatterns = [
     # API Root
     path('api/v1/', api_root),
     
-    # Admin
-    path('admin/', admin.site.urls),
+    # Django admin (DJANGO_ADMIN_PATH; production uses 'django-admin/' because the
+    # Next.js frontend serves its own /admin/* pages)
+    path(settings.DJANGO_ADMIN_PATH, admin.site.urls),
     
     # API v1 — authentication (login, logout, token refresh)
     path('api/v1/auth/', include('apps.authentication.urls')),

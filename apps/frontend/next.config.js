@@ -8,7 +8,7 @@ const nextConfig = {
     domains: ['placeholder.com'],
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9301/api',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
   },
   webpack(config) {
     // Exclude legacy MUI pages/components from compilation — only src/app is active

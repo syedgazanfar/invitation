@@ -87,7 +87,7 @@ docker compose -f docker-compose.prod.yml up -d backend celery
 ```
 
 5. Submit a test enquiry at `https://yourdomain.com/enquiry` and check that the WhatsApp messages arrive.
-   If not, look at the enquiry in `https://yourdomain.com/admin/` (the WhatsApp error is shown there), and at
+   If not, look at the enquiry in `https://yourdomain.com/django-admin/` (Django admin; the WhatsApp error is shown there), and at
    `docker compose -f docker-compose.prod.yml logs celery`.
 
 ## Updating

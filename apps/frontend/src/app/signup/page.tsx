@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
 import { authAPI, apiErrorMessage } from '@/lib/api';
+import { normalizePhone } from '@/lib/forms';
 import type { ApiEnvelope, AuthPayload, RegisterInput } from '@/lib/types';
 import { useAuthStore } from '@/store/authStore';
 
@@ -72,7 +73,7 @@ export default function SignupPage() {
     }
 
     const payload: RegisterInput = {
-      phone: formData.phone.trim(),
+      phone: normalizePhone(formData.phone),
       username: formData.username.trim(),
       password: formData.password,
       password_confirm: formData.password_confirm,

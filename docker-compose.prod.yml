@@ -21,6 +21,7 @@ x-backend-env: &backend-env
   CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?set CORS_ALLOWED_ORIGINS in .env}
   FRONTEND_URL: ${FRONTEND_URL:?set FRONTEND_URL in .env}
   USE_X_FORWARDED_PROTO: "True"
+  DJANGO_ADMIN_PATH: django-admin/   # /admin/* belongs to the Next.js admin pages
   DB_NAME: invitation_platform
   DB_USER: postgres
   DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}

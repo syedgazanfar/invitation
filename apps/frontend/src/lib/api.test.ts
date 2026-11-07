@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import MockAdapter from 'axios-mock-adapter';
+import { useAuthStore } from '@/store/authStore';
 import {
   api,
   publicApi,
@@ -55,6 +56,7 @@ describe('authenticated endpoints (base /api/v1)', () => {
     ['templatesAPI.getByPlan(code)', () => templatesAPI.getByPlan('PREMIUM'),
       'get', '/plans/templates/by-plan/PREMIUM/', undefined],
     ['templatesAPI.getByPlan()', () => templatesAPI.getByPlan(), 'get', '/plans/templates/all', undefined],
+    ['eventsAPI.getOrders', () => eventsAPI.getOrders(), 'get', '/invitations/orders/', undefined],
     ['eventsAPI.createOrder', () => eventsAPI.createOrder({ plan_code: 'BASIC', event_type: 'WEDDING' }),
       'post', '/invitations/orders/create/', { plan_code: 'BASIC', event_type: 'WEDDING' }],
     ['eventsAPI.create', () => eventsAPI.create({ order_id: 'o1', template_id: 't1', event_title: 'Asha & Ravi', event_date: '2027-01-10T18:00:00Z', event_venue: 'Hall', event_address: 'Hyd', host_name: 'Ravi' }),
@@ -183,5 +185,48 @@ describe('token refresh', () => {
     expect(calls).toBe(2);
     expect(localStorage.getItem('accessToken')).toBe('new-tok');
     expect(bodyOf(mock.history.post[0])).toEqual({ refresh: 'ref-tok' });
+  });
+});
+
+describe('auth endpoints never trigger a token refresh', () => {
+  it('a wrong password on /auth/login/ rejects with the server message, without refreshing', async () => {
+    localStorage.setItem('accessToken', 'dead');
+    localStorage.setItem('refreshToken', 'dead-refresh');
+    mock.reset();
+    mock.onPost('/auth/login/').reply(401, { success: false, code: 'INVALID_CREDENTIALS', message: 'Invalid credentials' });
+    mock.onPost('/auth/token/refresh/').reply(401, {});
+
+    const err = await authAPI.login({ identifier: 'ravi', password: 'wrong' }).catch((e) => e);
+
+    expect(apiErrorMessage(err, 'x')).toBe('Invalid credentials');
+    expect(mock.history.post.map((r) => r.url)).toEqual(['/auth/login/']);
+  });
+});
+
+describe('auth store stays in sync with token refresh', () => {
+  const user = { id: 'u1', username: 'ravi', phone: '+919876543210', email: '', full_name: '', is_approved: true, is_phone_verified: false };
+
+  it('logs the store out when the refresh token is rejected', async () => {
+    useAuthStore.getState().setAuth(user, 'old-tok', 'ref-tok');
+    mock.reset();
+    mock.onGet('/auth/profile/').reply(401, {});
+    mock.onPost('/auth/token/refresh/').reply(401, { success: false });
+
+    await userAPI.getProfile().catch(() => undefined);
+
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    expect(useAuthStore.getState().accessToken).toBeNull();
+  });
+
+  it('stores the refreshed access token in the auth store too', async () => {
+    useAuthStore.getState().setAuth(user, 'old-tok', 'ref-tok');
+    mock.reset();
+    mock.onGet('/auth/profile/').reply((config) =>
+      config.headers?.Authorization === 'Bearer new-tok' ? [200, { success: true }] : [401, {}]);
+    mock.onPost('/auth/token/refresh/').reply(200, { success: true, data: { access: 'new-tok' } });
+
+    await userAPI.getProfile();
+
+    expect(useAuthStore.getState().accessToken).toBe('new-tok');
   });
 });

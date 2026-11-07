@@ -6,7 +6,7 @@ import axios from 'axios';
 import { gsap } from 'gsap';
 import { invitationsAPI, apiErrorMessage } from '@/lib/api';
 import { getFingerprint, type FingerprintResult } from '@/lib/fingerprint';
-import { inviteViewStateForCheck, inviteViewStateForError, type InviteViewState } from '@/lib/invite';
+import { inviteNotice, inviteViewStateForCheck, inviteViewStateForError, type InviteViewState } from '@/lib/invite';
 import type { ApiEnvelope, GuestCheckResult, GuestRegisterResult, PublicInvitation, PublicInviteResponse } from '@/lib/types';
 
 const statusOf = (err: unknown) => (axios.isAxiosError(err) ? err.response?.status : undefined);
@@ -119,20 +119,8 @@ export default function InvitationPage() {
     );
   }
 
-  if (viewState === 'expired') {
-    return <Notice icon="⏰" title="Invitation Expired" body="This invitation has expired. Please contact the host for more information." />;
-  }
-  if (viewState === 'limit-reached') {
-    return (
-      <Notice
-        icon="🚫"
-        title="Guest Limit Reached"
-        body="The maximum number of guests for this invitation has been reached. Please contact the host if you believe this is an error."
-      />
-    );
-  }
-  if (viewState === 'not-found') {
-    return <Notice icon="🔍" title="Invitation Not Found" body="This invitation link is not valid. Please check the link you received." />;
+  if (viewState === 'expired' || viewState === 'limit-reached' || viewState === 'not-found') {
+    return <Notice {...inviteNotice(viewState)} />;
   }
   if (viewState === 'error' || !invitation) {
     return <Notice icon="❌" title="Something went wrong" body={error || 'Failed to load invitation'} />;

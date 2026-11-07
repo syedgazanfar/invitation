@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { eventsAPI, plansAPI, templatesAPI, apiErrorMessage } from '@/lib/api';
-import type { ApiEnvelope, InvitationDetail, Paginated, Plan, Template } from '@/lib/types';
+import { pickReusableOrder } from '@/lib/orders';
+import type { ApiEnvelope, InvitationDetail, OrderSummary, Paginated, Plan, Template } from '@/lib/types';
 
 type Step = 'details' | 'plan' | 'template';
 
@@ -29,12 +30,16 @@ export default function NewEventPage() {
 
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const [existingOrder, setExistingOrder] = useState<OrderSummary | null>(null);
+  const [notice, setNotice] = useState('');
 
   useEffect(() => {
     plansAPI.getAll()
       .then((res) => setPlans((res.data as Paginated<Plan>).results ?? []))
       .catch((err) => setError(apiErrorMessage(err, 'Failed to load plans')));
+    eventsAPI.getOrders()
+      .then((res) => setExistingOrder(pickReusableOrder((res.data as Paginated<OrderSummary>).results ?? [])))
+      .catch(() => setExistingOrder(null));
   }, []);
 
   const handleDetailsNext = () => {
@@ -69,19 +74,27 @@ export default function NewEventPage() {
     setError('');
 
     try {
-      // Step 1: create (or reuse) the order for the selected plan
-      let newOrderId = orderId;
-      if (!newOrderId) {
+      // Step 1: reuse the user's open order, or create one. Django only lets an
+      // invitation attach to an APPROVED order, and admins approve the latest one.
+      let order = existingOrder;
+      if (!order) {
         const orderRes = await eventsAPI.createOrder({ plan_code: selectedPlan, event_type: 'WEDDING' });
-        newOrderId = (orderRes.data as ApiEnvelope<{ id: string }>).data.id;
-        setOrderId(newOrderId);
+        order = (orderRes.data as ApiEnvelope<OrderSummary>).data;
+        setExistingOrder(order);
+      }
+      if (order.status !== 'APPROVED') {
+        setNotice(
+          `Your order ${order.order_number} is awaiting admin approval. ` +
+            'Once it is approved, come back here to create your invitation. Your details are kept on this page until you leave it.',
+        );
+        return;
       }
 
       // Step 2: create the invitation linked to the order
       const { event_time, ...details } = eventData;
       const invRes = await eventsAPI.create({
         ...details,
-        order_id: newOrderId,
+        order_id: order.id,
         template_id: selectedTemplate,
         event_date: new Date(`${eventData.event_date}T${event_time || '00:00'}`).toISOString(),
       });
@@ -124,6 +137,10 @@ export default function NewEventPage() {
           <span>Template</span>
         </div>
       </div>
+
+      {notice && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-6">{notice}</div>
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">

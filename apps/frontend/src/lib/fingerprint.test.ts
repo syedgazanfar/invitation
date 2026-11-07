@@ -4,7 +4,7 @@ import { getFingerprint } from './fingerprint';
 describe('getFingerprint', () => {
   it('returns a non-empty fingerprint plus the components the backend accepts', async () => {
     const fp = await getFingerprint();
-    expect(fp.fingerprint).toMatch(/^[0-9a-f]{8,}$/);
+    expect(fp.fingerprint).toMatch(/^[0-9a-f]{64}$/); // SHA-256 hex; Guest.device_fingerprint max_length=64
     expect(typeof fp.screen_resolution).toBe('string');
     expect(typeof fp.timezone_offset).toBe('string');
     expect(typeof fp.languages).toBe('string');
@@ -27,5 +27,15 @@ describe('getFingerprint', () => {
     } finally {
       Object.defineProperty(navigator, 'userAgent', { value: original, configurable: true });
     }
+  });
+});
+
+describe('getFingerprint distinguishes identical devices', () => {
+  it('gives two browsers with identical characteristics different fingerprints', async () => {
+    localStorage.clear();
+    const first = await getFingerprint();
+    localStorage.clear(); // a second, identical phone has its own storage
+    const second = await getFingerprint();
+    expect(second.fingerprint).not.toBe(first.fingerprint);
   });
 });

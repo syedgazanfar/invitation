@@ -97,6 +97,28 @@ export interface Template {
 }
 
 // ---------------------------------------------------------------------------
+// Orders
+// ---------------------------------------------------------------------------
+export type OrderStatus = 'PENDING_PAYMENT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+
+/** invitations.OrderListSerializer (GET /invitations/orders/, paginated) */
+export interface OrderSummary {
+  id: string;
+  order_number: string;
+  plan_name: string;
+  event_type: string;
+  event_type_name: string;
+  status: OrderStatus | string;
+  payment_status: string;
+  approved_at: string | null;
+  created_at: string;
+  has_invitation: boolean;
+  invitation_slug: string | null;
+  granted_regular_links: number;
+  granted_test_links: number;
+}
+
+// ---------------------------------------------------------------------------
 // Invitations (owner)
 // ---------------------------------------------------------------------------
 /** invitations.InvitationListSerializer */
