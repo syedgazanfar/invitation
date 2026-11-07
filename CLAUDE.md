@@ -145,7 +145,12 @@ GET  /api/invite/{slug}/
 POST /api/invite/{slug}/check/     # Fingerprint check
 POST /api/invite/{slug}/register/  # Guest registration
 POST /api/invite/{slug}/rsvp/
+GET  /api/v1/enquiries/            # Enquiry form options
+POST /api/v1/enquiries/            # Public enquiry form (throttled, honeypot)
 ```
+
+### Enquiry Form + WhatsApp (WA-AKG)
+`apps/enquiries/` stores public enquiries (frontend page `/enquiry`) and, via a Celery task, sends WhatsApp messages through the WA-AKG gateway (git submodule `apps/wa-gateway`, compose service `wa-gateway`, dashboard on http://localhost:3001). Configure with `WA_AKG_*` env vars (see `apps/backend/.env.example`). If WA-AKG is unconfigured or down, the enquiry is still saved and the error shows in Django admin, where "Re-send pending WhatsApp notifications" retries it.
 
 Full reference: `API_ENDPOINTS_DOCUMENTATION.md`
 

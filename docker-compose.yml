@@ -53,6 +53,13 @@ services:
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost,http://127.0.0.1,http://localhost:3000,http://localhost:8080}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
       - FINGERPRINT_SALT=${FINGERPRINT_SALT:-your-secret-salt}
+      # WA-AKG WhatsApp gateway (enquiry notifications)
+      - WA_AKG_BASE_URL=${WA_AKG_BASE_URL:-http://wa-gateway:3000/api}
+      - WA_AKG_API_KEY=${WA_AKG_API_KEY:-}
+      - WA_AKG_SESSION_ID=${WA_AKG_SESSION_ID:-}
+      - WA_AKG_ADMIN_NUMBERS=${WA_AKG_ADMIN_NUMBERS:-}
+      - WA_AKG_SEND_CUSTOMER_CONFIRMATION=${WA_AKG_SEND_CUSTOMER_CONFIRMATION:-True}
+      - ENQUIRY_BRAND_NAME=${ENQUIRY_BRAND_NAME:-Our team}
     volumes:
       - ./apps/backend/src:/app/src
       - media_files:/app/media
@@ -65,7 +72,7 @@ services:
       redis:
         condition: service_healthy
     command: >
-      sh -c "python src/manage.py makemigrations accounts plans invitations admin_dashboard ai &&
+      sh -c "python src/manage.py makemigrations accounts plans invitations admin_dashboard ai enquiries &&
              python src/manage.py migrate &&
              python src/manage.py seed_data &&
              daphne -b 0.0.0.0 -p 8000 config.asgi:application"
@@ -86,6 +93,12 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - REDIS_URL=redis://redis:6379/0
+      - WA_AKG_BASE_URL=${WA_AKG_BASE_URL:-http://wa-gateway:3000/api}
+      - WA_AKG_API_KEY=${WA_AKG_API_KEY:-}
+      - WA_AKG_SESSION_ID=${WA_AKG_SESSION_ID:-}
+      - WA_AKG_ADMIN_NUMBERS=${WA_AKG_ADMIN_NUMBERS:-}
+      - WA_AKG_SEND_CUSTOMER_CONFIRMATION=${WA_AKG_SEND_CUSTOMER_CONFIRMATION:-True}
+      - ENQUIRY_BRAND_NAME=${ENQUIRY_BRAND_NAME:-Our team}
     volumes:
       - ./apps/backend/src:/app/src
       - media_files:/app/media
@@ -118,8 +131,63 @@ services:
     stdin_open: true
     tty: true
 
+  # ---------------------------------------------------------------------------
+  # WA-AKG WhatsApp Gateway (git submodule: apps/wa-gateway)
+  # Dashboard: http://localhost:3001  (scan QR to connect a WhatsApp session,
+  # then create an API key under Settings -> API Keys)
+  # ---------------------------------------------------------------------------
+  wa-gateway-db:
+    image: mysql:8.0
+    container_name: invitation_wa_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${WA_MYSQL_ROOT_PASSWORD:-wa-akg-password}
+      MYSQL_DATABASE: wa_akg
+    volumes:
+      - wa_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  wa-gateway:
+    build:
+      context: ./apps/wa-gateway
+      dockerfile: Dockerfile
+    container_name: invitation_wa_gateway
+    environment:
+      - DATABASE_URL=mysql://root:${WA_MYSQL_ROOT_PASSWORD:-wa-akg-password}@wa-gateway-db:3306/wa_akg
+      - AUTH_SECRET=${WA_AUTH_SECRET:-change-this-wa-akg-auth-secret}
+      - BASE_URL=${WA_BASE_URL:-http://localhost:3001}
+      - NEXTAUTH_URL=${WA_BASE_URL:-http://localhost:3001}
+      - NEXT_PUBLIC_APP_URL=${WA_BASE_URL:-http://localhost:3001}
+      - NEXT_PUBLIC_API_URL=${WA_BASE_URL:-http://localhost:3001}/api
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - BAILEYS_LOG_LEVEL=error
+      - NEXT_PUBLIC_SWAGGER_ENABLED=${WA_SWAGGER_ENABLED:-false}
+      - TZ=Asia/Kolkata
+      - LOCALE=en-IN
+      - DEFAULT_LANGUAGE=en
+      - ADMIN_EMAIL=${WA_ADMIN_EMAIL:-admin@example.com}
+      - ADMIN_PASSWORD=${WA_ADMIN_PASSWORD:-change-this-password}
+    volumes:
+      - wa_app_data:/app/data
+      - wa_uploads_data:/app/uploads
+    ports:
+      - "3001:3000"
+    depends_on:
+      wa-gateway-db:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
   media_files:
   static_files:
+  wa_mysql_data:
+  wa_app_data:
+  wa_uploads_data:
