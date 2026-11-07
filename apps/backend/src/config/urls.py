@@ -20,6 +20,7 @@ def api_root(request):
             "invitations": "/api/v1/invitations/",
             "admin_dashboard": "/api/v1/admin-dashboard/",
             "ai": "/api/v1/ai/",
+            "enquiries": "/api/v1/enquiries/",
             "invite": "/api/invite/",
         },
         "documentation": {
@@ -43,7 +44,8 @@ urlpatterns = [
     path('api/v1/invitations/', include('apps.invitations.urls')),
     path('api/v1/admin-dashboard/', include('apps.admin_dashboard.urls')),
     path('api/v1/ai/', include('apps.ai.urls')),
-    
+    path('api/v1/enquiries/', include('apps.enquiries.urls')),
+
     # Public invitation endpoint (no version prefix)
     path('api/invite/', include('apps.invitations.public_urls')),
 

@@ -52,6 +52,7 @@ LOCAL_APPS = [
     'apps.invitations',
     'apps.admin_dashboard',
     'apps.ai',
+    'apps.enquiries',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -180,7 +181,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/minute',
-        'user': '1000/minute'
+        'user': '1000/minute',
+        'enquiry': os.getenv('ENQUIRY_THROTTLE_RATE', '5/hour'),
     }
 }
 
@@ -272,6 +274,15 @@ MSG91_AUTH_KEY = os.getenv('MSG91_AUTH_KEY', '')
 MSG91_SENDER_ID = os.getenv('MSG91_SENDER_ID', 'INVITE')
 MSG91_ROUTE = os.getenv('MSG91_ROUTE', '4')
 MSG91_TEMPLATE_ID = os.getenv('MSG91_TEMPLATE_ID', '')
+
+# WA-AKG WhatsApp gateway (apps/wa-gateway) — used for enquiry notifications
+WA_AKG_BASE_URL = os.getenv('WA_AKG_BASE_URL', '')            # e.g. http://wa-gateway:3000/api
+WA_AKG_API_KEY = os.getenv('WA_AKG_API_KEY', '')              # wag_... from WA-AKG dashboard
+WA_AKG_SESSION_ID = os.getenv('WA_AKG_SESSION_ID', '')        # connected WhatsApp session id
+WA_AKG_ADMIN_NUMBERS = [n.strip() for n in os.getenv('WA_AKG_ADMIN_NUMBERS', '').split(',') if n.strip()]
+WA_AKG_SEND_CUSTOMER_CONFIRMATION = os.getenv('WA_AKG_SEND_CUSTOMER_CONFIRMATION', 'True').lower() in ('true', '1', 'yes')
+WA_AKG_TIMEOUT = int(os.getenv('WA_AKG_TIMEOUT', '15'))
+ENQUIRY_BRAND_NAME = os.getenv('ENQUIRY_BRAND_NAME', 'Our team')
 
 # Logging
 LOGGING = {

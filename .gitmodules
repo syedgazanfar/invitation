@@ -1,0 +1,3 @@
+[submodule "apps/wa-gateway"]
+	path = apps/wa-gateway
+	url = https://github.com/mrifqidaffaaditya/WA-AKG.git
