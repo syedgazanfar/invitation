@@ -1,18 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-interface User {
-  id: string;
-  username: string;
-  phone: string;
-  email: string;
-  full_name: string;
-  is_approved: boolean;
-  is_phone_verified: boolean;
-  is_staff: boolean;
-  is_superuser: boolean;
-  current_plan: { code: string; name: string; price_inr: number } | null;
-}
+import type { User } from '@/lib/types';
 
 interface AuthState {
   user: User | null;

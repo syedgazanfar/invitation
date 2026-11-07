@@ -6,54 +6,16 @@
  *  - `publicApi` → guest invitation endpoints under /api/invite (no auth)
  */
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import type {
+  GuestRegisterInput,
+  InvitationCreateInput,
+  InvitationUpdateInput,
+  RegisterInput,
+  UserStatusFilter,
+} from './types';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '');
 const PUBLIC_API_URL = API_URL.replace(/\/v1$/, '');
-
-// ---------------------------------------------------------------------------
-// Request inputs (moved to types.ts in Task 2)
-// ---------------------------------------------------------------------------
-export interface RegisterInput {
-  phone: string;
-  username: string;
-  password: string;
-  password_confirm: string;
-  email?: string;
-  full_name?: string;
-}
-
-export interface InvitationCreateInput {
-  order_id: string;
-  template_id: string;
-  event_title: string;
-  event_date: string;
-  event_venue: string;
-  event_address: string;
-  host_name: string;
-  event_map_link?: string;
-  host_phone?: string;
-  custom_message?: string;
-  banner_image?: string;
-  gallery_images?: string[];
-}
-
-export type InvitationUpdateInput = Partial<Omit<InvitationCreateInput, 'order_id' | 'template_id' | 'banner_image' | 'gallery_images'>>;
-
-export interface GuestRegisterInput {
-  name: string;
-  fingerprint: string;
-  phone?: string;
-  message?: string;
-  attending?: boolean | null;
-  is_test?: boolean;
-  screen_resolution?: string;
-  timezone_offset?: string;
-  languages?: string;
-  canvas_hash?: string;
-  session_id?: string;
-}
-
-export type UserStatusFilter = 'pending' | 'approved' | 'blocked';
 
 // ---------------------------------------------------------------------------
 // Clients
