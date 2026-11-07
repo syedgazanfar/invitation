@@ -98,6 +98,14 @@ class User(AbstractUser):
     
     def __str__(self):
         return f"{self.phone} - {self.full_name or self.username}"
+
+    def save(self, *args, **kwargs):
+        # email is unique but optional: store "no email" as NULL, never ''.
+        # (UserManager.normalize_email turns None into '', and two '' values
+        # violate accounts_user_email_key.)
+        if not self.email or not self.email.strip():
+            self.email = None
+        super().save(*args, **kwargs)
     
     @property
     def active_orders_count(self):
