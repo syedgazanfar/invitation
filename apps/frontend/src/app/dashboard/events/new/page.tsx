@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { eventsAPI, plansAPI, templatesAPI } from '@/lib/api';
-import { Plan, Template } from '@/types';
+import { eventsAPI, plansAPI, templatesAPI, apiErrorMessage } from '@/lib/api';
+import type { ApiEnvelope, InvitationDetail, Paginated, Plan, Template } from '@/lib/types';
 
 type Step = 'details' | 'plan' | 'template';
 
@@ -33,13 +33,12 @@ export default function NewEventPage() {
 
   useEffect(() => {
     plansAPI.getAll()
-      .then((res) => setPlans(res.data.results ?? []))
-      .catch((err) => console.error('Failed to load plans:', err));
+      .then((res) => setPlans((res.data as Paginated<Plan>).results ?? []))
+      .catch((err) => setError(apiErrorMessage(err, 'Failed to load plans')));
   }, []);
 
   const handleDetailsNext = () => {
-    if (!eventData.event_title || !eventData.event_date || !eventData.event_venue ||
-        !eventData.event_address || !eventData.host_name) {
+    if (!eventData.event_title || !eventData.event_date || !eventData.event_venue || !eventData.host_name) {
       setError('Please fill in all required fields');
       return;
     }
@@ -51,9 +50,9 @@ export default function NewEventPage() {
     setSelectedPlan(planCode);
     try {
       const res = await templatesAPI.getByPlan(planCode);
-      setTemplates(res.data.results ?? res.data.data ?? []);
+      setTemplates((res.data as ApiEnvelope<{ plan: Plan; templates: Template[] }>).data?.templates ?? []);
     } catch (err) {
-      console.error('Failed to load templates:', err);
+      setError(apiErrorMessage(err, 'Failed to load templates'));
       setTemplates([]);
     }
     setCurrentStep('template');
@@ -70,21 +69,27 @@ export default function NewEventPage() {
     setError('');
 
     try {
-      // Step 1: Create order for the selected plan
-      const orderRes = await eventsAPI.createOrder({ plan_code: selectedPlan });
-      const newOrderId = orderRes.data.id;
-      setOrderId(newOrderId);
+      // Step 1: create (or reuse) the order for the selected plan
+      let newOrderId = orderId;
+      if (!newOrderId) {
+        const orderRes = await eventsAPI.createOrder({ plan_code: selectedPlan, event_type: 'WEDDING' });
+        newOrderId = (orderRes.data as ApiEnvelope<{ id: string }>).data.id;
+        setOrderId(newOrderId);
+      }
 
-      // Step 2: Create invitation linked to the order
+      // Step 2: create the invitation linked to the order
+      const { event_time, ...details } = eventData;
       const invRes = await eventsAPI.create({
-        order: newOrderId,
-        template: selectedTemplate,
-        ...eventData,
+        ...details,
+        order_id: newOrderId,
+        template_id: selectedTemplate,
+        event_date: new Date(`${eventData.event_date}T${event_time || '00:00'}`).toISOString(),
       });
 
-      router.push(`/dashboard`);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || err.response?.data?.message || 'Failed to create invitation');
+      const created = (invRes.data as ApiEnvelope<InvitationDetail>).data;
+      router.push(created?.slug ? `/dashboard/events/${created.slug}` : '/dashboard');
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Failed to create invitation'));
     } finally {
       setLoading(false);
     }
@@ -189,10 +194,9 @@ export default function NewEventPage() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
               <input
                 type="text"
-                required
                 className="input-field"
                 value={eventData.event_address}
                 onChange={(e) => setEventData({ ...eventData, event_address: e.target.value })}
@@ -282,6 +286,7 @@ export default function NewEventPage() {
                 >
                   {template.thumbnail && (
                     <div className="aspect-video bg-gray-100 rounded-lg mb-3 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={template.thumbnail} alt={template.name} className="w-full h-full object-cover" />
                     </div>
                   )}
