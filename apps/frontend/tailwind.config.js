@@ -8,6 +8,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Brand palette (landing page): ivory paper, deep maroon, muted gold
+        ivory: { DEFAULT: '#FBF7F1', 100: '#F6EFE4', 200: '#EFE4D3' },
+        maroon: { 500: '#8A2C3B', 600: '#7A2433', 700: '#641C29', 800: '#4E1520', 900: '#3A0F18' },
+        gold: { 300: '#DCC59B', 400: '#C9AA72', 500: '#B08D57', 600: '#977445' },
+        ink: { DEFAULT: '#231C19', muted: '#6E625A' },
         primary: {
           50: '#fdf2f8',
           100: '#fce7f3',
@@ -20,6 +25,10 @@ module.exports = {
           800: '#9d174d',
           900: '#831843',
         },
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-serif)', 'ui-serif', 'Georgia', 'serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.8s ease-in-out',

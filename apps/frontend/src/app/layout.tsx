@@ -1,13 +1,20 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Cormorant_Garamond, Inter } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const sans = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+const serif = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Invvite · Digital Invitations for Weddings, Birthdays & Festivals',
   description:
-    'Beautiful animated digital invitations for weddings, engagements, birthdays and festivals, shared in one WhatsApp link. Enquire or chat with us on WhatsApp.',
+    'Elegant digital invitations for weddings, engagements, birthdays and festivals, designed for you and shared as one WhatsApp link. Enquire or chat with us on WhatsApp.',
 };
 
 export default function RootLayout({
@@ -16,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" className={`${sans.variable} ${serif.variable}`}>
+      <body className="font-sans">{children}</body>
     </html>
   );
 }
