@@ -152,6 +152,13 @@ export const invitationsAPI = {
     publicApi.post(`/invite/${slug}/rsvp/`, data),
 };
 
+/** Public enquiry form (no auth on the Django side; throttled per IP). */
+export const enquiriesAPI = {
+  getOptions: () => api.get('/enquiries/'),
+  submit: (data: { name: string; phone: string; event_date: string | null; website?: string; email?: string; message?: string; event_type?: string }) =>
+    api.post('/enquiries/', data),
+};
+
 export const adminAPI = {
   getStats: () => api.get('/admin-dashboard/dashboard/'),
   getUsers: (params?: { search?: string; status?: UserStatusFilter }) =>

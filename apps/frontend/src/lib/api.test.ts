@@ -12,6 +12,7 @@ import {
   eventsAPI,
   invitationsAPI,
   adminAPI,
+  enquiriesAPI,
 } from './api';
 
 type Method = 'get' | 'post' | 'patch';
@@ -73,6 +74,8 @@ describe('authenticated endpoints (base /api/v1)', () => {
     ['eventsAPI.verifyPayment',
       () => eventsAPI.verifyPayment({ razorpay_order_id: 'a', razorpay_payment_id: 'b', razorpay_signature: 'c' }),
       'post', '/invitations/payment/razorpay/verify/', { razorpay_order_id: 'a', razorpay_payment_id: 'b', razorpay_signature: 'c' }],
+    ['enquiriesAPI.submit', () => enquiriesAPI.submit({ name: 'Asha', phone: '+919876543210', event_date: null, website: '' }),
+      'post', '/enquiries/', { name: 'Asha', phone: '+919876543210', event_date: null, website: '' }],
     ['adminAPI.getStats', () => adminAPI.getStats(), 'get', '/admin-dashboard/dashboard/', undefined],
     ['adminAPI.getUsers', () => adminAPI.getUsers({ search: 'ravi', status: 'pending' }),
       'get', '/admin-dashboard/users/', undefined, { search: 'ravi', status: 'pending' }],
