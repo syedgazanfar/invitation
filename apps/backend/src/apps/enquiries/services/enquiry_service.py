@@ -2,10 +2,12 @@
 Business logic for enquiries.
 """
 import logging
+from datetime import timedelta
 from typing import Optional
 
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 
 from ..models import Enquiry
 from .whatsapp_service import WhatsAppService, WhatsAppError
@@ -15,8 +17,27 @@ logger = logging.getLogger(__name__)
 
 class EnquiryService:
 
+    # A repeat from the same number within this window is the same person
+    # retrying (lost connection, double tab), not a new enquiry.
+    DUPLICATE_WINDOW = timedelta(minutes=10)
+
     @staticmethod
     def create_enquiry(data: dict, source_ip: Optional[str] = None, user_agent: str = '') -> Enquiry:
+        recent = (
+            Enquiry.objects.filter(phone=data['phone'], created_at__gte=timezone.now() - EnquiryService.DUPLICATE_WINDOW)
+            .order_by('-created_at')
+            .first()
+        )
+        if recent:
+            # Keep the first record (and its WhatsApp alert); fill in anything the
+            # first attempt didn't have. No second notification.
+            changed = [f for f in ('email', 'event_date', 'message') if data.get(f) and not getattr(recent, f)]
+            for field in changed:
+                setattr(recent, field, data[field])
+            if changed:
+                recent.save(update_fields=changed + ['updated_at'])
+            return recent
+
         enquiry = Enquiry.objects.create(
             **data,
             source_ip=source_ip,
