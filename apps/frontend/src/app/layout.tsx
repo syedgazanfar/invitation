@@ -1,12 +1,21 @@
 import type { Metadata } from 'next';
-import { Cormorant_Garamond, Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 
-const sans = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
-const serif = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
+// Fonts are self-hosted (src/app/fonts, latin subset, OFL-licensed) so production
+// builds never depend on reaching Google Fonts; next/font/google failed
+// intermittently inside the Docker build.
+const sans = localFont({
+  src: [{ path: './fonts/inter-variable.woff2', weight: '100 900', style: 'normal' }],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const serif = localFont({
+  src: [
+    { path: './fonts/cormorant-garamond-variable.woff2', weight: '300 700', style: 'normal' },
+    { path: './fonts/cormorant-garamond-variable-italic.woff2', weight: '300 700', style: 'italic' },
+  ],
   variable: '--font-serif',
   display: 'swap',
 });
