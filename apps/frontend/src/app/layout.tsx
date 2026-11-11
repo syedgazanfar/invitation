@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+import Script from 'next/script';
+import { gtmInitScript, gtmNoscriptSrc, gtmScriptSrc } from '@/lib/analytics';
 import './globals.css';
 
 // Fonts are self-hosted (src/app/fonts, latin subset, OFL-licensed) so production
@@ -33,7 +35,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${sans.variable} ${serif.variable}`}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        {/* Google Tag Manager (noscript fallback) */}
+        <noscript>
+          <iframe src={gtmNoscriptSrc()} height="0" width="0" style={{ display: 'none', visibility: 'hidden' }} />
+        </noscript>
+        {children}
+        {/* Google Tag Manager */}
+        <Script id="gtm-init" strategy="afterInteractive">
+          {gtmInitScript()}
+        </Script>
+        <Script id="gtm" src={gtmScriptSrc()} strategy="afterInteractive" />
+      </body>
     </html>
   );
 }
