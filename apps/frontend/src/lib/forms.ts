@@ -1,8 +1,14 @@
 /** Form helpers shared by pages that post to Django. */
 
-/** Remove spaces, dashes and brackets: Django's phone_regex only accepts digits with an optional leading +. */
+/**
+ * Clean a phone number for Django: convert Devanagari digits (typed on Hindi /
+ * Marathi keyboards) to ASCII, then remove spaces, dashes and brackets.
+ * Django's phone_regex only accepts ASCII digits with an optional leading +.
+ */
 export function normalizePhone(value: string): string {
-  return value.replace(/[\s\-()]/g, '');
+  return value
+    .replace(/[०-९]/g, (d) => String(d.charCodeAt(0) - 0x0966))
+    .replace(/[\s\-()]/g, '');
 }
 
 /** PATCH /auth/profile/ body: trimmed, with a blank email omitted (Django rejects "" for the unique email field). */

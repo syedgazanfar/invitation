@@ -39,3 +39,16 @@ body {
     @apply text-red-600 text-sm mt-1;
   }
 }
+
+/* Devanagari (Hindi / Marathi): letter-spacing pulls conjuncts and matras apart,
+   and the Devanagari fonts have no italic (browsers would fake a slant). */
+:lang(hi) [class*='tracking-'],
+:lang(mr) [class*='tracking-'] {
+  letter-spacing: normal;
+}
+:lang(hi) em,
+:lang(mr) em,
+:lang(hi) .italic,
+:lang(mr) .italic {
+  font-style: normal;
+}

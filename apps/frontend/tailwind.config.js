@@ -27,8 +27,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        serif: ['var(--font-serif)', 'ui-serif', 'Georgia', 'serif'],
+        sans: ['var(--font-sans)', 'var(--font-sans-deva)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-serif)', 'var(--font-serif-deva)', 'ui-serif', 'Georgia', 'serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.8s ease-in-out',
