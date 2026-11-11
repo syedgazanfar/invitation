@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { userAPI } from '@/lib/api';
+import { userAPI, apiErrorMessage } from '@/lib/api';
+import { profileUpdatePayload } from '@/lib/forms';
+import type { ApiEnvelope, Profile } from '@/lib/types';
 import { useAuthStore } from '@/store/authStore';
 
 export default function ProfilePage() {
@@ -25,14 +27,14 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     try {
       const response = await userAPI.getProfile();
-      const profile = response.data;
+      const profile = (response.data as ApiEnvelope<Profile>).data;
       setFormData({
         full_name: profile.full_name || '',
         email: profile.email || '',
         username: profile.username || '',
       });
     } catch (err) {
-      console.error('Failed to load profile:', err);
+      setError(apiErrorMessage(err, 'Failed to load profile'));
     } finally {
       setLoading(false);
     }
@@ -45,11 +47,12 @@ export default function ProfilePage() {
     setSuccess(false);
 
     try {
-      const response = await userAPI.updateProfile({ full_name: formData.full_name, email: formData.email });
-      updateUser({ ...user!, ...response.data });
+      const response = await userAPI.updateProfile(profileUpdatePayload(formData));
+      const saved = (response.data as ApiEnvelope<Profile>).data ?? (response.data as Profile);
+      updateUser({ full_name: saved.full_name, email: saved.email });
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update profile');
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Failed to update profile'));
     } finally {
       setSaving(false);
     }

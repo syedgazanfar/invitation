@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authAPI } from '@/lib/api';
+import { authAPI, apiErrorMessage } from '@/lib/api';
+import type { ApiEnvelope, AuthPayload } from '@/lib/types';
 import { useAuthStore } from '@/store/authStore';
 
 export default function LoginPage() {
@@ -11,7 +12,7 @@ export default function LoginPage() {
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const [formData, setFormData] = useState({
-    email: '',
+    identifier: '',
     password: '',
   });
   const [error, setError] = useState('');
@@ -23,13 +24,13 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await authAPI.login(formData);
-      const { user, access, refresh } = response.data.data;
+      const response = await authAPI.login({ identifier: formData.identifier.trim(), password: formData.password });
+      const { user, access, refresh } = (response.data as ApiEnvelope<AuthPayload>).data;
 
       setAuth(user, access, refresh);
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      router.push(user.is_staff ? '/admin/dashboard' : '/dashboard');
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Login failed. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -52,16 +53,17 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+              <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-2">
+                Username or phone
               </label>
               <input
-                id="email"
-                type="email"
+                id="identifier"
+                type="text"
+                autoComplete="username"
                 required
                 className="input-field"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                value={formData.identifier}
+                onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
               />
             </div>
 

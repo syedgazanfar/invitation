@@ -17,12 +17,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Technology Stack
 
 **Backend:** Django 4.2 + DRF + PostgreSQL 15 + Redis + Celery + Django Channels (WebSocket)
-**Frontend:** React 18 + TypeScript + Material-UI v5 + Zustand + React Router
+**Frontend:** Next.js 14 (App Router) + React 18 + TypeScript + Tailwind + Zustand; tests with Vitest
 **AI:** OpenAI API + Google Cloud Vision + scikit-learn + OpenCV
 **Payment/SMS:** Razorpay + MSG91
 **Deployment:** Docker + Docker Compose + Nginx
 
-> Note: the **active frontend is Next.js 14 (App Router) in `apps/frontend/src/app/`**, styled with Tailwind, using `src/lib/api.ts` and `NEXT_PUBLIC_API_URL`. The older MUI/React Router code (`src/pages`, `src/components`, `src/services`, `App.tsx`, …) is excluded by `next.config.js` (null-loader) and `tsconfig.json`; it is legacy and not served. Add new pages under `src/app/`.
+> Note: the **active frontend is Next.js 14 (App Router) in `apps/frontend/src/app/`**, styled with Tailwind, using `src/lib/api.ts` and `NEXT_PUBLIC_API_URL`. The older MUI/React Router code (`src/legacy-pages`, `src/components`, `src/services`, `App.tsx`, …) is excluded by `next.config.js` (null-loader) and `tsconfig.json`; it is legacy and not served. (Its pages dir is named `legacy-pages` because Next.js would treat `src/pages` as a Pages Router and fail the build.) Add new pages under `src/app/`.
+>
+> **Frontend ↔ API contract:** `src/lib/api.ts` is the single source of backend endpoints and `src/lib/types.ts` mirrors the Django serializers (each type names its serializer). `src/lib/api.test.ts` pins every endpoint's method/URL/body; update it with any API change. Guest endpoints use `publicApi` (base `/api`, not `/api/v1`). Frontend checks: `cd apps/frontend && npx tsc --noEmit && npm test && npm run build`.
 
 ## Project Structure
 
@@ -118,7 +120,9 @@ Always query active invitations with: `is_active=True` AND `link_expires_at > no
 
 ## Frontend Component Library
 
-Reusable components in `apps/frontend/src/components/ui/` — always use these instead of raw MUI components:
+> **Legacy only.** These MUI components belong to the excluded React Router code and are not available to `src/app/` pages. Active pages use the Tailwind classes in `src/app/globals.css` (`card`, `btn-primary`, `btn-secondary`, `input-field`, `error-message`).
+
+Reusable components in `apps/frontend/src/components/ui/` (legacy):
 
 - `Button/LoadingButton` — button with loading spinner
 - `Form/FormInput`, `PasswordInput`, `PhoneInput`, `EmailInput`

@@ -28,7 +28,7 @@
         "components/*"
       ],
       "@pages/*": [
-        "pages/*"
+        "legacy-pages/*"
       ],
       "@hooks/*": [
         "hooks/*"
@@ -63,7 +63,7 @@
   ],
   "exclude": [
     "node_modules",
-    "src/pages",
+    "src/legacy-pages",
     "src/components",
     "src/hooks",
     "src/services",

@@ -1,190 +1,164 @@
-import axios from 'axios';
+/**
+ * Django REST API client: the frontend's single source of backend endpoints.
+ * Every function here is pinned by src/lib/api.test.ts.
+ *
+ *  - `api`       → authenticated endpoints under /api/v1 (JWT, auto-refresh)
+ *  - `publicApi` → guest invitation endpoints under /api/invite (no auth)
+ */
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import type {
+  GuestRegisterInput,
+  InvitationUpdateInput,
+  OrderCreateInput,
+  RegisterInput,
+  UserStatusFilter,
+} from './types';
+import { useAuthStore } from '@/store/authStore';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '');
+const PUBLIC_API_URL = API_URL.replace(/\/v1$/, '');
 
+// ---------------------------------------------------------------------------
+// Clients
+// ---------------------------------------------------------------------------
 export const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+export const publicApi = axios.create({
+  baseURL: PUBLIC_API_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
 
-// Response interceptor to handle token refresh
+type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+
+// A 401 from these means bad credentials/token, not an expired session: never refresh.
+const NO_REFRESH = ['/auth/login/', '/auth/register/', '/auth/token/refresh/', '/auth/logout/'];
+
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('accessToken');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const original = error.config as RetriableConfig | undefined;
+    const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-          const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
-            refresh: refreshToken,
-          });
-
-          const access = response.data.data?.access || response.data.access;
-
-          localStorage.setItem('accessToken', access);
-
-          originalRequest.headers.Authorization = `Bearer ${access}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      }
+    if (
+      error.response?.status !== 401 ||
+      !original ||
+      original._retry ||
+      !refreshToken ||
+      NO_REFRESH.includes(original.url ?? '')
+    ) {
+      return Promise.reject(error);
     }
+    original._retry = true;
 
-    return Promise.reject(error);
-  }
+    try {
+      const res = await api.post('/auth/token/refresh/', { refresh: refreshToken }, { _retry: true } as object);
+      const access: string | undefined = res.data?.data?.access || res.data?.access;
+      if (!access) throw new Error('No access token in refresh response');
+      localStorage.setItem('accessToken', access);
+      useAuthStore.setState({ accessToken: access }); // keep the persisted store in sync
+      original.headers.Authorization = `Bearer ${access}`;
+      return api(original);
+    } catch (refreshError) {
+      useAuthStore.getState().clearAuth(); // clears localStorage keys and the persisted store
+      if (typeof window !== 'undefined' && !process.env.VITEST) window.location.href = '/login';
+      return Promise.reject(refreshError);
+    }
+  },
 );
 
-// Auth API
+// ---------------------------------------------------------------------------
+// Errors
+// ---------------------------------------------------------------------------
+/** Best human-readable message from a Django/DRF error response. */
+export function apiErrorMessage(err: unknown, fallback: string): string {
+  const data = (err as { response?: { data?: unknown } })?.response?.data;
+  if (!data || typeof data !== 'object') return fallback;
+  const body = data as Record<string, unknown>;
+
+  if (typeof body.message === 'string' && body.message) return body.message;
+  const fromFields = firstFieldError(body.errors) ?? firstFieldError(body);
+  if (fromFields) return fromFields;
+  if (typeof body.detail === 'string' && body.detail) return body.detail;
+  return fallback;
+}
+
+function firstFieldError(value: unknown): string | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+    if (key === 'success' || key === 'code') continue;
+    if (Array.isArray(v) && typeof v[0] === 'string') return v[0];
+    if (typeof v === 'string' && key !== 'message' && key !== 'detail') return v;
+  }
+  return undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Endpoints
+// ---------------------------------------------------------------------------
 export const authAPI = {
-  register: (data: { username: string; phone: string; password: string; full_name?: string }) =>
-    api.post('/auth/register/', data),
-
-  login: (data: { email: string; password: string }) =>
-    api.post('/auth/login/', { identifier: data.email, password: data.password }),
-
-  adminLogin: (data: { email: string; password: string }) =>
-    api.post('/auth/admin/login/', { identifier: data.email, password: data.password }),
-
-  logout: (refresh: string) =>
-    api.post('/auth/logout/', { refresh }),
-
-  refresh: (refresh: string) =>
-    api.post('/auth/token/refresh/', { refresh }),
+  register: (data: RegisterInput) => api.post('/auth/register/', data),
+  login: (data: { identifier: string; password: string }) => api.post('/auth/login/', data),
+  logout: (refresh: string) => api.post('/auth/logout/', { refresh }),
 };
 
-// User/Profile API
 export const userAPI = {
-  getProfile: () =>
-    api.get('/auth/profile/'),
-
-  updateProfile: (data: object) =>
-    api.patch('/auth/profile/', data),
-
-  changePassword: (data: { old_password: string; new_password: string }) =>
-    api.post('/auth/change-password/', data),
+  getProfile: () => api.get('/auth/profile/'),
+  updateProfile: (data: { full_name?: string; email?: string }) => api.patch('/auth/profile/', data),
 };
 
-// Plans API
 export const plansAPI = {
-  getAll: () =>
-    api.get('/plans/'),
+  getAll: () => api.get('/plans/'),
 };
 
-// Templates API
 export const templatesAPI = {
-  getAll: () =>
-    api.get('/plans/templates/all'),
-
   getByPlan: (planCode?: string) =>
-    planCode
-      ? api.get(`/plans/templates/by-plan/${planCode}/`)
-      : api.get('/plans/templates/all'),
+    planCode ? api.get(`/plans/templates/by-plan/${planCode}/`) : api.get('/plans/templates/all'),
 };
 
-// Invitations (authenticated) API
 export const eventsAPI = {
-  // Create an order (first step before creating an invitation)
-  createOrder: (data: { plan_code: string }) =>
+  getOrders: () => api.get('/invitations/orders/'),
+  createOrder: (data: OrderCreateInput) =>
     api.post('/invitations/orders/create/', data),
-
-  // Create an invitation linked to an order
-  create: (data: any) =>
-    api.post('/invitations/create/', data),
-
-  // Update an invitation
-  update: (slug: string, data: any) =>
-    api.patch(`/invitations/${slug}/update/`, data),
-
-  // List all invitations for the authenticated user
-  getAll: () =>
-    api.get('/invitations/'),
-
-  // Get a single invitation by slug
-  getOne: (slug: string) =>
-    api.get(`/invitations/${slug}/`),
-
-  // Get stats (open count, device breakdown, etc.)
-  getAnalytics: (slug: string) =>
-    api.get(`/invitations/${slug}/stats/`),
-
-  // List guests
-  getGuests: (slug: string, page: number = 1) =>
-    api.get(`/invitations/${slug}/guests/`, { params: { page } }),
-
-  // Export guests as CSV
-  exportGuestsCSV: (slug: string) =>
-    api.get(`/invitations/${slug}/guests/export/`, { responseType: 'blob' }),
-
-  // Create Razorpay payment order
-  createRazorpayOrder: (orderId: string) =>
-    api.post(`/invitations/orders/${orderId}/payment/razorpay/create/`),
-
-  // Verify Razorpay payment
-  verifyPayment: (data: {
-    razorpay_order_id: string;
-    razorpay_payment_id: string;
-    razorpay_signature: string;
-  }) => api.post('/invitations/payment/razorpay/verify/', data),
+  /** Multipart: Django requires banner_image. Build the body with invitationFormData(). */
+  create: (data: FormData) =>
+    api.post('/invitations/create/', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (slug: string, data: InvitationUpdateInput) => api.patch(`/invitations/${slug}/update/`, data),
+  getAll: () => api.get('/invitations/'),
+  getOne: (slug: string) => api.get(`/invitations/${slug}/`),
+  getStats: (slug: string) => api.get(`/invitations/${slug}/stats/`),
+  getGuests: (slug: string, page: number = 1) => api.get(`/invitations/${slug}/guests/`, { params: { page } }),
+  exportGuestsCSV: (slug: string) => api.get(`/invitations/${slug}/guests/export/`, { responseType: 'blob' }),
+  createRazorpayOrder: (orderId: string) => api.post(`/invitations/orders/${orderId}/payment/razorpay/create/`),
+  verifyPayment: (data: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) =>
+    api.post('/invitations/payment/razorpay/verify/', data),
 };
 
-// Public invitation API (no auth)
 export const invitationsAPI = {
-  getMeta: (slug: string) =>
-    api.get(`/invite/${slug}/`),
-
-  checkFingerprint: (slug: string, data: { fingerprint: string }) =>
-    api.post(`/invite/${slug}/check/`, data),
-
-  registerGuest: (slug: string, data: { guest_name: string; is_test?: boolean; fingerprint?: string }) =>
-    api.post(`/invite/${slug}/register/`, data),
-
-  submitRSVP: (slug: string, data: { guest_id: string; status: string }) =>
-    api.post(`/invite/${slug}/rsvp/`, data),
+  get: (slug: string) => publicApi.get(`/invite/${slug}/`),
+  check: (slug: string, data: { fingerprint: string }) => publicApi.post(`/invite/${slug}/check/`, data),
+  register: (slug: string, data: GuestRegisterInput) => publicApi.post(`/invite/${slug}/register/`, data),
+  rsvp: (slug: string, data: { fingerprint: string; attending: boolean }) =>
+    publicApi.post(`/invite/${slug}/rsvp/`, data),
 };
 
-// Admin dashboard API
 export const adminAPI = {
-  getStats: () =>
-    api.get('/admin-dashboard/stats/'),
-
-  getUsers: (params?: object) =>
+  getStats: () => api.get('/admin-dashboard/dashboard/'),
+  getUsers: (params?: { search?: string; status?: UserStatusFilter }) =>
     api.get('/admin-dashboard/users/', { params }),
-
-  getOrders: (params?: object) =>
-    api.get('/admin-dashboard/orders/', { params }),
-
-  approveOrder: (orderId: string) =>
-    api.post(`/admin-dashboard/orders/${orderId}/approve/`),
-
-  rejectOrder: (orderId: string, data?: { reason: string }) =>
-    api.post(`/admin-dashboard/orders/${orderId}/reject/`, data),
-
-  toggleUserBlock: (userId: string) =>
-    api.post(`/admin-dashboard/users/${userId}/toggle-block/`),
+  getPendingApprovals: () => api.get('/admin-dashboard/approvals/pending/'),
+  approveUser: (userId: string, data?: { notes?: string }) =>
+    api.post(`/admin-dashboard/users/${userId}/approve/`, data),
+  rejectUser: (userId: string, data: { reason: string; block_user?: boolean }) =>
+    api.post(`/admin-dashboard/users/${userId}/reject/`, data),
 };
