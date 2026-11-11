@@ -82,7 +82,7 @@ services:
       - media_files:/app/media
       - static_files:/app/static
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${BACKEND_HOST_PORT:-8000}:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -115,7 +115,7 @@ services:
     volumes:
       - media_files:/usr/share/nginx/html/media:ro
     ports:
-      - "127.0.0.1:8081:80"
+      - "127.0.0.1:${MEDIA_HOST_PORT:-8081}:80"
     depends_on:
       - backend   # backend creates the volume first, so it stays writable by the app user
     restart: unless-stopped
@@ -127,7 +127,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:?set PUBLIC_API_URL in .env}
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-3000}:3000"
     depends_on:
       - backend
     restart: unless-stopped
@@ -172,7 +172,7 @@ services:
       - wa_app_data:/app/data
       - wa_uploads_data:/app/uploads
     ports:
-      - "127.0.0.1:3001:3000"
+      - "127.0.0.1:${WA_HOST_PORT:-3001}:3000"
     depends_on:
       wa-gateway-db:
         condition: service_healthy
