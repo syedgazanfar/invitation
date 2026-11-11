@@ -5,8 +5,9 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Wedding Invitations Platform',
-  description: 'AI-Enhanced Digital Wedding Invitations',
+  title: 'Invvite · Digital Invitations for Weddings, Birthdays & Festivals',
+  description:
+    'Beautiful animated digital invitations for weddings, engagements, birthdays and festivals, shared in one WhatsApp link. Enquire or chat with us on WhatsApp.',
 };
 
 export default function RootLayout({
