@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * Public landing page: services, process, live plan prices, a short enquiry
+ * Public landing page: services, process, a short enquiry
  * form (name, WhatsApp number, event date) and "Chat on WhatsApp".
  * Visual language: ivory paper, deep maroon, muted gold, serif display type.
  */
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { enquiriesAPI, plansAPI, apiErrorMessage } from '@/lib/api';
+import { enquiriesAPI, apiErrorMessage } from '@/lib/api';
 import {
   BUSINESS_WHATSAPP_DISPLAY,
   landingEnquiryErrors,
@@ -16,7 +16,6 @@ import {
   type LandingEnquiryErrors,
   type LandingEnquiryForm,
 } from '@/lib/landing';
-import type { Paginated, Plan } from '@/lib/types';
 
 /* ------------------------------------------------------------------ content */
 
@@ -172,7 +171,6 @@ function todayISO() {
 }
 
 export default function LandingPage() {
-  const [plans, setPlans] = useState<Plan[]>([]);
   const [form, setForm] = useState<LandingEnquiryForm>(EMPTY);
   const [errors, setErrors] = useState<LandingEnquiryErrors>({});
   const [formError, setFormError] = useState('');
@@ -182,10 +180,6 @@ export default function LandingPage() {
 
   useEffect(() => {
     setMinDate(todayISO());
-    plansAPI
-      .getAll()
-      .then((res) => setPlans((res.data as Paginated<Plan>).results ?? []))
-      .catch(() => setPlans([])); // pricing section simply hides
   }, []);
 
   const update = (field: keyof LandingEnquiryForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -219,7 +213,6 @@ export default function LandingPage() {
   };
 
   const chatUrl = whatsappChatUrl('Hi! I would like to know more about your digital invitations.');
-  const featured = plans.length >= 3 ? plans[1].id : null;
 
   const inputClass = (bad?: string) =>
     `w-full rounded-lg border bg-white px-4 py-3 text-ink placeholder:text-ink-muted/60 focus:outline-none focus:ring-2 focus:ring-maroon-600/30 focus:border-maroon-600 transition ${
@@ -237,7 +230,6 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-8 text-sm text-ink-muted">
             <a href="#occasions" className="hover:text-maroon-700 transition">Occasions</a>
             <a href="#process" className="hover:text-maroon-700 transition">How it works</a>
-            {plans.length > 0 && <a href="#pricing" className="hover:text-maroon-700 transition">Pricing</a>}
             <a href="#faq" className="hover:text-maroon-700 transition">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
@@ -353,55 +345,6 @@ export default function LandingPage() {
           ))}
         </ol>
       </section>
-
-      {/* ----------------------------------------------------------- pricing */}
-      {plans.length > 0 && (
-        <section id="pricing" className="border-t border-ivory-200 bg-white">
-          <div className="mx-auto max-w-6xl px-5 py-20 md:py-28">
-            <SectionHeading eyebrow="Pricing" title="Simple plans, one-time price" intro="Pick a plan by the size of your guest list. Every plan includes RSVP tracking." />
-            <div className="mt-14 grid gap-6 md:grid-cols-3">
-              {plans.map((p) => {
-                const isFeatured = p.id === featured;
-                return (
-                  <div
-                    key={p.id}
-                    className={`relative flex flex-col rounded-2xl p-8 ${
-                      isFeatured ? 'bg-maroon-800 text-ivory shadow-[0_30px_60px_-30px_rgba(58,15,24,0.7)]' : 'border border-ivory-200 bg-ivory'
-                    }`}
-                  >
-                    {isFeatured && (
-                      <span className="absolute -top-3 left-8 rounded-full bg-gold-400 px-3 py-1 text-[11px] font-semibold tracking-wider uppercase text-maroon-900">
-                        Recommended
-                      </span>
-                    )}
-                    <h3 className="font-serif text-2xl font-medium">{p.name}</h3>
-                    <p className={`mt-2 text-sm ${isFeatured ? 'text-ivory/70' : 'text-ink-muted'}`}>{p.description}</p>
-                    <p className={`mt-6 font-serif text-5xl ${isFeatured ? 'text-gold-300' : 'text-maroon-700'}`}>{p.display_price}</p>
-                    <ul className={`mt-8 flex-1 space-y-3 text-sm ${isFeatured ? 'text-ivory/85' : 'text-ink'}`}>
-                      <li className="flex gap-2">
-                        <Check className={`mt-0.5 w-4 h-4 shrink-0 ${isFeatured ? 'text-gold-300' : 'text-gold-500'}`} /> Up to {p.regular_links} guests
-                      </li>
-                      {(p.features ?? []).slice(0, 5).map((f) => (
-                        <li key={f} className="flex gap-2">
-                          <Check className={`mt-0.5 w-4 h-4 shrink-0 ${isFeatured ? 'text-gold-300' : 'text-gold-500'}`} /> {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <a
-                      href="#enquire"
-                      className={`mt-8 inline-flex justify-center rounded-full px-6 py-3 text-sm font-semibold transition ${
-                        isFeatured ? 'bg-gold-400 text-maroon-900 hover:bg-gold-300' : 'border border-maroon-700 text-maroon-700 hover:bg-maroon-700 hover:text-ivory'
-                      }`}
-                    >
-                      Choose {p.name}
-                    </a>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ----------------------------------------------------------- enquiry */}
       <section id="enquire" className="mx-auto max-w-6xl px-5 py-20 md:py-28">
