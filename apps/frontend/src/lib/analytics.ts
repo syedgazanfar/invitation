@@ -18,3 +18,15 @@ export function gtmInitScript(): string {
     "window.gtag('js', new Date());",
   ].join('\n');
 }
+
+/**
+ * GTM custom event fired after an enquiry is accepted by the server.
+ * In GTM: Trigger type "Custom Event", event name "enquiry_submitted".
+ * Deliberately carries no personal data (no name or phone number).
+ */
+export function trackEnquirySubmitted({ hasEventDate }: { hasEventDate: boolean }): void {
+  if (typeof window === 'undefined') return;
+  const w = window as Window & { dataLayer?: unknown[] };
+  w.dataLayer = w.dataLayer || [];
+  w.dataLayer.push({ event: 'enquiry_submitted', enquiry_has_event_date: hasEventDate });
+}

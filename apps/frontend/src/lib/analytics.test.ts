@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { GTM_ID, gtmInitScript, gtmNoscriptSrc, gtmScriptSrc } from './analytics';
+import { GTM_ID, gtmInitScript, gtmNoscriptSrc, gtmScriptSrc, trackEnquirySubmitted } from './analytics';
 
 type W = Window & { dataLayer?: unknown[]; gtag?: (...args: unknown[]) => void };
 
@@ -33,5 +33,24 @@ describe('Google Tag Manager', () => {
     // eslint-disable-next-line no-new-func
     new Function(gtmInitScript())();
     expect((window as W).dataLayer![0]).toEqual({ event: 'earlier' });
+  });
+});
+
+describe('trackEnquirySubmitted', () => {
+  it('pushes an enquiry_submitted event to the dataLayer', () => {
+    trackEnquirySubmitted({ hasEventDate: true });
+    expect((window as W).dataLayer).toEqual([{ event: 'enquiry_submitted', enquiry_has_event_date: true }]);
+  });
+
+  it('never sends the visitor name or phone number to Google', () => {
+    trackEnquirySubmitted({ hasEventDate: false });
+    const pushed = JSON.stringify((window as W).dataLayer);
+    expect(pushed).not.toMatch(/name|phone|\+91/i);
+  });
+
+  it('works before GTM has loaded (creates the dataLayer)', () => {
+    expect((window as W).dataLayer).toBeUndefined();
+    trackEnquirySubmitted({ hasEventDate: false });
+    expect((window as W).dataLayer).toHaveLength(1);
   });
 });

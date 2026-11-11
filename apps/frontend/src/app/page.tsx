@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { enquiriesAPI, apiErrorMessage } from '@/lib/api';
+import { trackEnquirySubmitted } from '@/lib/analytics';
 import {
   BUSINESS_WHATSAPP_DISPLAY,
   landingEnquiryErrors,
@@ -197,6 +198,7 @@ export default function LandingPage() {
     setSubmitting(true);
     try {
       const res = await enquiriesAPI.submit(landingEnquiryPayload(form));
+      trackEnquirySubmitted({ hasEventDate: Boolean(form.event_date) });
       setSent(res.data?.message || "Thank you! We'll contact you on WhatsApp shortly.");
       setForm(EMPTY);
     } catch (err) {
